@@ -1,4 +1,5 @@
-# Production stack for a single VPS (e.g. Hostinger KVM) — one domain, automatic HTTPS.
+# Production stack for a single VPS (e.g. Hostinger KVM) behind a Cloudflare Tunnel.
+#   browser → Cloudflare (HTTPS) → cloudflared → caddy:80 → web / api
 #   https://DOMAIN/         → Nuxt web
 #   https://DOMAIN/api/*    → Rust API   (also webhooks: /api/webhooks/meta, /api/webhooks/tiktok)
 #   https://DOMAIN/media/*  → uploaded files (served by the API)
@@ -6,7 +7,8 @@
 #   cp .env.prod.example .env.prod   # fill it in
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 #
-# Only Caddy is exposed (80/443). Postgres and the app containers stay on the private network.
+# Nothing is exposed publicly: cloudflared dials out to Cloudflare. Caddy is bound to
+# 127.0.0.1:8081 only, for local debugging (curl http://127.0.0.1:8081/api/health).
 
 name: zaokaiy
 
@@ -74,13 +76,21 @@ services:
     image: caddy:2-alpine
     restart: unless-stopped
     depends_on: [api, web]
-    ports: ["80:80", "443:443", "443:443/udp"]
-    environment:
-      DOMAIN: ${DOMAIN:?set DOMAIN in .env.prod}
+    ports: ["127.0.0.1:8081:80"]
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+
+  # Cloudflare Tunnel. In Zero Trust → Networks → Tunnels, set the public hostname
+  # DOMAIN → service  http://caddy:80
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    depends_on: [caddy]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?set TUNNEL_TOKEN in .env.prod}
 
 volumes:
   pgdata:
