@@ -1,0 +1,99 @@
+{
+  "product": {
+    "list": {
+      "title": "Products",
+      "newProduct": "+ New product",
+      "searchPh": "Search name or SKU",
+      "allStatuses": "All statuses",
+      "anyReview": "Any review state",
+      "allShopCats": "All shop categories",
+      "sellStaff": "Sell-staff",
+      "review": "Review",
+      "emptyTitle": "No products",
+      "emptyText": "Add your first product to start selling.",
+      "add": "Add product"
+    },
+    "new": {
+      "back": "← Products",
+      "title": "New product",
+      "tip": "Tip: save first, then let AI write the description."
+    },
+    "edit": {
+      "viewLive": "View live ↗",
+      "writing": "Writing…",
+      "writeAi": "✦ Write with AI",
+      "aiLanguage": "AI writing language",
+      "langs": {
+        "English": "English",
+        "Thai": "Thai",
+        "Lao": "Lao",
+        "Vietnamese": "Vietnamese",
+        "Chinese": "Chinese"
+      },
+      "stockUpdated": "Stock updated",
+      "adjustStock": "Adjust stock",
+      "notePh": "Note (optional)",
+      "apply": "Apply",
+      "createContent": "✎ Create content for this"
+    },
+    "form": {
+      "sku": "SKU",
+      "price": "Price ({currency})",
+      "statusDraft": "Draft — not published",
+      "statusActive": "Active — publish",
+      "categories": "Categories",
+      "marketCat": "Marketplace category",
+      "requiredToPublish": "· required to publish",
+      "shopCat": "Shop category",
+      "manage": "Manage",
+      "none": "— None —",
+      "shopCatHint": "Organise your storefront with your own categories & sub-categories.",
+      "inventory": "Inventory",
+      "initialStock": "Initial stock",
+      "inStock": "In stock:",
+      "adjust": "adjust",
+      "socialCode": "Social code (comment ordering)",
+      "socialCodePh": "e.g. A01",
+      "socialHint": "Customers comment “CF {code} x2” on Facebook, TikTok or WhatsApp to order.",
+      "barcode": "Barcode (for POS scanning)",
+      "barcodePh": "Scan or type EAN / UPC",
+      "lowStockAt": "Low-stock alert at",
+      "openResell": "Open to sell-staff",
+      "openResellHint": "Let approved shops & creators resell this.",
+      "defaultCommission": "Default commission (%)",
+      "perUnit": "≈ {amount} per unit. You can set a custom rate per sell-staff.",
+      "createPublish": "Create & publish",
+      "createSubmit": "Create & submit for review",
+      "saveDraft": "Save draft",
+      "saveSubmit": "Save & submit for review",
+      "saveChanges": "Save changes",
+      "publishBlocked": "Choose a marketplace category to publish, or save as draft.",
+      "reviewLive": "These changes will be reviewed before they go live — the product is hidden until approved.",
+      "reviewNew": "Our team reviews new listings, usually within a day."
+    },
+    "review": {
+      "pendingTitle": "Waiting for marketplace review.",
+      "pendingText": "It goes live as soon as it's approved",
+      "submittedAgo": "submitted {ago}",
+      "liveTitle": "Live.",
+      "liveText": "Editing the name, description, marketplace category or photos sends it back for review.",
+      "approvedInactive": "Approved — set the status to Active to publish.",
+      "rejectedTitle": "Changes requested:",
+      "seeHistory": "see history",
+      "notSubmitted": "Not published yet. Choose a marketplace category, then submit it for review.",
+      "resubmit": "Resubmit",
+      "submit": "Submit for review",
+      "hide": "Hide",
+      "history": "History",
+      "noActivity": "No review activity yet.",
+      "by": "by {actor}",
+      "actions": {
+        "submitted": "Submitted for review",
+        "resubmitted": "Resubmitted for review",
+        "approved": "Approved",
+        "auto_approved": "Auto-approved",
+        "rejected": "Changes requested"
+      }
+    }
+  }
+}

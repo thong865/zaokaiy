@@ -1,0 +1,50 @@
+{
+  "category": {
+    "select": {
+      "placeholder": "Choose a category",
+      "allOf": "All of {name}",
+      "pickDeeper": "pick a sub-category for better placement"
+    },
+    "tree": {
+      "addCategory": "+ Category",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "count": "{n} category | {n} categories",
+      "upToLevels": "up to {n} levels",
+      "newTopPh": "New top-level category, e.g. Skincare",
+      "newSubPh": "New sub-category in {name}",
+      "hidden": "Hidden",
+      "productCount": "{n} product | {n} products",
+      "productCountTitle": "{direct} directly · {total} including sub-categories",
+      "subCount": "{n} sub-category | {n} sub-categories",
+      "addSub": "+ Sub",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "slug": "URL slug",
+      "parent": "Parent",
+      "topLevel": "— Top level —",
+      "visible": "Visible to shoppers",
+      "image": "Image (optional)",
+      "imageUrl": "Image URL (optional)",
+      "added": "Category added",
+      "deleted": "Deleted",
+      "confirmDeleteWithProducts": "Delete “{name}”? Its {n} product(s) stay in your shop but lose this category.",
+      "confirmDelete": "Delete “{name}”?",
+      "emptyTitle": "No categories yet",
+      "emptyShop": "Group your products, e.g. Face › Serums, so shoppers can browse your storefront.",
+      "emptyMarketplace": "Create the marketplace taxonomy sellers will choose from.",
+      "deleteTitle": "Delete “{name}”",
+      "moveProductsTo": "Move its products to",
+      "chooseCategory": "Choose a category…",
+      "deleteTip": "Tip: to keep it for existing products but stop new ones, edit it and untick “Visible to shoppers” instead.",
+      "moveAndDelete": "Move & delete"
+    },
+    "page": {
+      "title": "Shop categories",
+      "intro": "Build your own category & sub-category tree to organise {storefront}. This is separate from the marketplace category each product needs for search and browsing.",
+      "yourStorefront": "your storefront"
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "store": {
+    "home": {
+      "heroChip": "Social commerce for the new generation",
+      "heroTitle1": "Open a shop.",
+      "heroTitle2": "Let creators",
+      "heroTitle3": "sell for you.",
+      "heroText": "List your products, track stock, run ads — and open your catalog to sell-staff who earn a commission on every sale. AI writes the content.",
+      "startSelling": "Start selling — free",
+      "becomeSellStaff": "Become a sell-staff",
+      "features": {
+        "ownShop": { "title": "Own shop", "text": "Products, inventory and orders in one place." },
+        "network": { "title": "Sell-staff network", "text": "Approve resellers & creators, set commission per partner." },
+        "ai": { "title": "AI growth", "text": "Captions, video scripts, ads and a shop assistant." }
+      },
+      "resultsFor": "Results for “{q}”",
+      "freshDrops": "Fresh drops",
+      "allIn": "All {name}",
+      "emptyTitle": "Nothing here yet",
+      "emptyText": "Be the first to list a product.",
+      "listProduct": "List a product"
+    },
+    "card": {
+      "soldOut": "Sold out",
+      "onlyLeft": "Only {n} left",
+      "added": "Added ✓",
+      "addToCart": "Add to cart"
+    },
+    "gallery": {
+      "image": "Show image {n}",
+      "video": "Show video {n}"
+    },
+    "ad": "Ad",
+    "product": {
+      "notFound": "Product not found",
+      "recommendedBy": "Recommended by {shop} · ships from {origin}",
+      "breadcrumb": "Breadcrumb",
+      "home": "Home",
+      "inStock": "{n} in stock",
+      "buyNow": "Buy now",
+      "noDescription": "No description yet.",
+      "resellTitle": "Sell this and earn {pct}",
+      "resellText": "{shop} lets creators and shops resell this product. Earn about {amount} per unit.",
+      "creatorsTalking": "Creators talking about it"
+    },
+    "shop": {
+      "notFound": "Shop not found",
+      "welcome": "Welcome to our shop!",
+      "ownProducts": "Own products",
+      "curatedPicks": "Curated picks",
+      "categories": "Categories",
+      "allProducts": "All products",
+      "noProducts": "No products yet",
+      "fromShop": "From {name}"
+    },
+    "shopKind": {
+      "seller": "Seller",
+      "creator": "Creator"
+    },
+    "cart": {
+      "title": "Cart",
+      "yourCart": "Your cart",
+      "orderPlaced": "Order placed",
+      "created": "We created {n} order (one per shop). Total due: | We created {n} orders (one per shop). Total due:",
+      "simulated": "Payment is simulated in this build — connect PromptPay / Stripe / Omise in the backend for real payments.",
+      "payNow": "Pay now (demo)",
+      "payLater": "Pay later",
+      "from": "from {shop}",
+      "shippingTitle": "Shipping",
+      "fullName": "Full name",
+      "city": "City",
+      "postcode": "Postcode",
+      "placing": "Placing…",
+      "placeOrder": "Place order",
+      "loginToCheckout": "Log in to checkout",
+      "emptyTitle": "Your cart is empty",
+      "emptyText": "Find something you love.",
+      "browse": "Browse products"
+    },
+    "orders": {
+      "receipt": "Receipt",
+      "payDemo": "Pay (demo)",
+      "cancel": "Cancel",
+      "emptyTitle": "No orders yet",
+      "startShopping": "Start shopping"
+    },
+    "feed": {
+      "heading": "Creator feed",
+      "intro": "Reviews, picks and scripts from shops and creators. Buying through a post supports the creator.",
+      "emptyTitle": "No posts yet",
+      "emptyText": "Creators: publish content from your Creator studio."
+    }
+  }
+}

@@ -1,0 +1,31 @@
+# Automatic HTTPS (Let's Encrypt) for {$DOMAIN}. The DNS A record must point at this server
+# and ports 80 + 443 must be open before the first start.
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Rust API, incl. webhooks (/api/webhooks/*) and uploads
+	handle /api/* {
+		reverse_proxy api:8080
+	}
+	# Uploaded media (local storage driver)
+	handle /media/* {
+		header Cache-Control "public, max-age=31536000, immutable"
+		reverse_proxy api:8080
+	}
+	# Everything else: Nuxt SSR
+	handle {
+		reverse_proxy web:3000
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
+
+# Uncomment if www.{$DOMAIN} also points here:
+# www.{$DOMAIN} {
+# 	redir https://{$DOMAIN}{uri} permanent
+# }

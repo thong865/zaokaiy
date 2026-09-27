@@ -1,0 +1,9 @@
+backend/target/
+backend/.env
+backend/media/
+frontend/node_modules/
+frontend/.nuxt/
+frontend/.output/
+frontend/.env
+.DS_Store
+.env.prod

@@ -1,0 +1,120 @@
+{
+  "dash": {
+    "open": {
+      "title": "Open your shop",
+      "subtitle": "Sell your own products, resell others' as a sell-staff, or both.",
+      "seller": "Seller",
+      "sellerHint": "I have my own products",
+      "creator": "Creator",
+      "creatorHint": "I promote & resell products",
+      "shopName": "Shop name",
+      "shopUrl": "Shop URL",
+      "about": "About",
+      "create": "Create shop"
+    },
+    "overview": {
+      "hello": "Hello, {name}",
+      "subtitle": "Here's how your shop is doing.",
+      "askAi": "✦ Ask AI",
+      "newProduct": "+ New product",
+      "needChanges": "{n} product needs changes before going live. | {n} products need changes before going live.",
+      "waitingReview": "{n} waiting for marketplace review.",
+      "viewProducts": "View products →",
+      "revenue": "Revenue",
+      "revenueHint": "{units} units · {orders} orders",
+      "toShip": "To ship",
+      "toShipHint": "Paid orders waiting",
+      "lowStock": "Low stock",
+      "lowStockHint": "{live}/{total} products live",
+      "sellStaff": "Sell-staff",
+      "sellStaffHint": "{n} pending requests",
+      "topProducts": "Top products",
+      "noSales": "No sales yet.",
+      "commissionEarned": "Commission earned",
+      "commissionEarnedHint": "As a sell-staff",
+      "commissionOwed": "Commission owed",
+      "commissionOwedHint": "To your sell-staff",
+      "adSpend": "Ad spend",
+      "adSpendHint": "{n} clicks",
+      "adCtr": "Ad CTR",
+      "adCtrHint": "{n} impressions",
+      "last14": "Last 14 days"
+    },
+    "orders": {
+      "title": "Orders",
+      "mine": "My products",
+      "asSellStaff": "Sold as sell-staff",
+      "allStatuses": "All statuses",
+      "invoice": "Invoice",
+      "packingSlip": "Packing slip",
+      "sellStaffChip": "sell-staff {pct} · {amount}",
+      "markShipped": "Mark shipped",
+      "markDelivered": "Mark delivered",
+      "emptyTitle": "No orders yet",
+      "emptySeller": "Share your storefront to start earning commission.",
+      "emptySupplier": "Orders for your products will appear here."
+    },
+    "inventory": {
+      "title": "Inventory",
+      "subtitle": "Every stock change is logged — sales, restocks, returns and cancellations.",
+      "lowStock": "Low stock",
+      "leftAlert": "{n} left · alert at {min}",
+      "addStock": "+ Stock",
+      "allStocked": "All products are well stocked. 🎉",
+      "movements": "Stock movements",
+      "when": "When",
+      "change": "Change",
+      "stockAfter": "Stock after",
+      "reason": "Reason",
+      "ref": "Ref",
+      "emptyMoves": "No stock movements yet",
+      "reasons": {
+        "sale": "Sale",
+        "restock": "Restock",
+        "cancel": "Cancellation",
+        "return": "Return",
+        "adjust": "Adjustment",
+        "reserve": "Reserved (social)",
+        "release": "Released"
+      }
+    },
+    "settings": {
+      "title": "Shop settings",
+      "url": "URL",
+      "about": "About",
+      "logoUrl": "Logo URL",
+      "shopType": "Shop type",
+      "typeSeller": "Seller — own products",
+      "typeCreator": "Creator — promote & resell",
+      "currency": "Currency",
+      "currencyHint": "Existing orders keep the currency they were placed in.",
+      "currencies": {
+        "THB": "Thai baht (THB)",
+        "LAK": "Lao kip (LAK)",
+        "USD": "US dollar (USD)"
+      },
+      "biz": {
+        "title": "Business & tax details",
+        "subtitle": "Printed on POS receipts, tax invoices and order invoices.",
+        "legalName": "Registered business name",
+        "legalNamePh": "e.g. Siam Crafts Co., Ltd.",
+        "taxId": "Tax ID",
+        "taxIdPh": "13 digits",
+        "branch": "Branch",
+        "branchPh": "e.g. Head office",
+        "vatRate": "VAT rate (%)",
+        "pricesIncludeVat": "Product prices already include VAT",
+        "receiptPrefix": "Receipt no. prefix",
+        "invoicePrefix": "Tax invoice no. prefix",
+        "receiptFooter": "Receipt footer",
+        "receiptFooterPh": "Thank you! Exchanges within 7 days with receipt.",
+        "save": "Save business details"
+      },
+      "another": {
+        "title": "Open another shop",
+        "subtitle": "Run multiple brands, or a separate creator storefront, from one account.",
+        "slugPh": "url-slug"
+      }
+    }
+  }
+}

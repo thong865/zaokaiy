@@ -1,0 +1,87 @@
+{
+  "media": {
+    "title": "Media library",
+    "image": "Image",
+    "video": "Video",
+    "images": "Images",
+    "videos": "Videos",
+    "allMedia": "All media",
+    "cover": "Cover",
+    "altText": "Alt text",
+    "untitled": "Untitled",
+    "noPreview": "No preview",
+    "dismiss": "Dismiss",
+    "selected": "{n} selected",
+    "searchPlaceholder": "Search by name or alt text",
+    "err": {
+      "unsupported": "Only images and videos are supported",
+      "tooLarge": "Too large (max {mb} MB)",
+      "uploadFailed": "Upload failed ({status})",
+      "network": "Network error"
+    },
+    "uploader": {
+      "drop": "Drop photos & videos, {browse}, or paste",
+      "browse": "browse",
+      "hint": "JPEG, PNG, WebP, GIF up to 15 MB · MP4, WebM, MOV up to 200 MB"
+    },
+    "gallery": {
+      "title": "Photos & videos",
+      "hint": "Drag to reorder. The first item is the cover shown in listings.",
+      "tooMany": "Only {max} items per product — {n} not added (still in your library).",
+      "makeCover": "Make cover",
+      "alt": "Alt",
+      "removeFromProduct": "Remove from product",
+      "moveLeft": "Move left",
+      "moveRight": "Move right",
+      "add": "Add media",
+      "altHelp": "Describe the image for screen readers and search engines, e.g. “Celadon mug, front view, jade glaze”."
+    },
+    "field": {
+      "label": "Media",
+      "change": "Change",
+      "choose": "Choose from library"
+    },
+    "picker": {
+      "tab": {
+        "library": "Library",
+        "upload": "Upload",
+        "url": "From URL"
+      },
+      "emptyTitle": "Your library is empty",
+      "emptyText": "Upload photos and videos once, reuse them everywhere.",
+      "uploadMedia": "Upload media",
+      "urlHelp": "Link an image or video hosted elsewhere (e.g. your supplier's CDN). It's added to your library without copying the file.",
+      "addToLibrary": "Add to library",
+      "max": "max {max}",
+      "addN": "Add {n}"
+    },
+    "library": {
+      "intro": "Upload once, reuse across products, creator posts and ads. Photos are auto-rotated, resized and stripped of location data.",
+      "storage": "Storage",
+      "unused": "Unused",
+      "clear": "Clear",
+      "selectAll": "Select all",
+      "select": "Select",
+      "productCount": "{n} product | {n} products",
+      "externalLink": "External link",
+      "external": "External",
+      "emptyTitle": "No media yet",
+      "emptyText": "Drop photos or videos above to get started.",
+      "emptyUnusedTitle": "Nothing unused",
+      "emptyUnusedText": "Every item is used by at least one product.",
+      "forceConfirm": "Delete anyway and remove them from those products, posts and ads?",
+      "deleted": "Deleted {n} item | Deleted {n} items",
+      "uploaded": "Uploaded {n} file | Uploaded {n} files",
+      "altSaved": "Alt text saved",
+      "urlCopied": "URL copied",
+      "altPlaceholder": "Describe what's in the photo",
+      "type": "Type",
+      "size": "Size",
+      "dimensions": "Dimensions",
+      "added": "Added",
+      "usedIn": "Used in",
+      "notUsed": "Not used by any product.",
+      "deleteFromLibrary": "Delete from library"
+    }
+  }
+}

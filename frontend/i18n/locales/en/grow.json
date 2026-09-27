@@ -1,0 +1,84 @@
+{
+  "grow": {
+    "status": "Status",
+    "choose": "Choose…",
+    "resold": "resold",
+    "ads": {
+      "title": "Ads",
+      "intro": "Promote your own or resold products across the marketplace. You pay per click; campaigns stop when the budget runs out.",
+      "newCampaign": "New campaign",
+      "campaign": "Campaign",
+      "budget": "Budget",
+      "impressions": "Impr.",
+      "clicks": "Clicks",
+      "perClickPrice": "{price}/click",
+      "pause": "Pause",
+      "activate": "Activate",
+      "emptyTitle": "No campaigns yet",
+      "emptyText": "Ads appear on the marketplace home page for shoppers.",
+      "headline": "Headline",
+      "writing": "Writing…",
+      "writeWithAi": "Write with AI",
+      "body": "Body",
+      "image": "Ad image (defaults to product cover)",
+      "perClick": "Per click",
+      "startAs": "Start as",
+      "estimate": "{n} clicks for {price}",
+      "chooseProductFirst": "Choose a product first"
+    },
+    "content": {
+      "title": "Creator studio",
+      "intro": "Generate posts, captions and short-video scripts for any product you sell. Published posts appear in the creator feed with a shoppable link that credits your shop.",
+      "offline": "AI is in offline template mode. Add {key} to the backend {env} to enable Claude-written content.",
+      "generator": "AI generator",
+      "format": "Format",
+      "tone": "Tone",
+      "lang": {
+        "en": "English",
+        "th": "Thai",
+        "lo": "Lao",
+        "vi": "Vietnamese",
+        "zh": "Chinese",
+        "ja": "Japanese"
+      },
+      "extra": "Extra direction",
+      "extraPlaceholder": "e.g. mention free shipping, target new moms",
+      "generate": "Generate",
+      "generating": "Generating…",
+      "chooseProduct": "Choose a product",
+      "editor": "Editor",
+      "aiGenerated": "AI-generated",
+      "titlePlaceholder": "Title",
+      "bodyPlaceholder": "Write or generate content…",
+      "cover": "Cover image or video (optional)",
+      "saveDraft": "Save draft",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "library": "Library ({n})",
+      "empty": "Nothing saved yet."
+    },
+    "assistant": {
+      "title": "AI assistant",
+      "intro": "Your business co-pilot for {shop}. It reads your real data and can save drafts — you stay in control of anything that goes live.",
+      "empty": "What can I help with?",
+      "placeholder": "Ask about sales, stock, sell-staff, or ask for content…",
+      "send": "Send",
+      "suggest": {
+        "s1": "How is my shop doing this week?",
+        "s2": "Which products need restocking?",
+        "s3": "Write a TikTok script for my best seller and save it as a draft",
+        "s4": "Draft an ad campaign for a product with no sales yet, budget 300",
+        "s5": "Any sell-staff requests I should review?"
+      },
+      "tool": {
+        "get_shop_stats": "Read shop stats",
+        "list_products": "Looked at products",
+        "get_low_stock": "Checked low stock",
+        "list_recent_orders": "Read recent orders",
+        "list_reseller_requests": "Checked sell-staff requests",
+        "draft_content": "Saved a content draft",
+        "draft_ad_campaign": "Created a draft ad"
+      }
+    }
+  }
+}

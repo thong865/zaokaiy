@@ -1,0 +1,102 @@
+{
+  "admin": {
+    "review": {
+      "title": "Product review",
+      "intro": "New and edited listings wait here until approved.",
+      "moderationOff": "Moderation is off (PRODUCT_REVIEW=off) — products go live immediately.",
+      "stats": {
+        "pending": "Pending",
+        "live": "Live",
+        "shops": "Shops",
+        "oldestWait": "Oldest wait"
+      },
+      "tabs": {
+        "pending": "Pending",
+        "rejected": "Needs changes",
+        "approved": "Approved",
+        "all": "All"
+      },
+      "searchPlaceholder": "Search product, SKU or shop",
+      "selected": "{n} selected",
+      "approve": "Approve",
+      "rejectEllipsis": "Reject…",
+      "reject": "Reject",
+      "selectAll": "Select all",
+      "selectRow": "Select {name}",
+      "cols": {
+        "product": "Product",
+        "shop": "Shop",
+        "category": "Category",
+        "price": "Price",
+        "submitted": "Submitted",
+        "review": "Review"
+      },
+      "inStock": "{n} in stock",
+      "queueClear": "Queue is clear 🎉",
+      "queueClearText": "New submissions will show up here.",
+      "nothingHere": "Nothing here",
+      "rejectTitle": "Request changes on {n} product | Request changes on {n} products",
+      "rejectPlaceholder": "Tell the seller what to fix — they'll see this on the product.",
+      "noticeApproved": "Approved {n} product | Approved {n} products",
+      "noticeRejected": "Rejected {n} product | Rejected {n} products"
+    },
+    "product": {
+      "notFound": "Product not found",
+      "back": "← Review queue",
+      "noMedia": "⚠ No photos or videos.",
+      "price": "Price",
+      "stock": "Stock",
+      "sku": "SKU",
+      "sellStaff": "Sell-staff",
+      "off": "Off",
+      "marketplaceCategory": "Marketplace category",
+      "none": "None",
+      "description": "Description",
+      "decision": "Decision",
+      "notePlaceholder": "Note to seller (required to reject)",
+      "requestChanges": "Request changes",
+      "approve": "Approve",
+      "decisionHint": "Approving an item that's already live keeps it live; rejecting takes it down until the seller fixes it.",
+      "seller": "Seller",
+      "joined": "Joined {date} · {approved} approved · {rejected} rejected",
+      "trusted": "Trusted — auto-approve",
+      "history": "History",
+      "system": "system",
+      "noActivity": "No activity.",
+      "templates": {
+        "photos": { "short": "Photos are missing, blurry or not of the actual product", "full": "Photos are missing, blurry or not of the actual product." },
+        "description": { "short": "Description is too short or misleading", "full": "Description is too short or misleading — please describe the product accurately." },
+        "category": { "short": "Wrong marketplace category", "full": "Wrong marketplace category — please choose the correct one." },
+        "price": { "short": "Price looks incorrect", "full": "Price looks incorrect." },
+        "notAllowed": { "short": "This item is not allowed on the marketplace", "full": "This item is not allowed on the marketplace." }
+      },
+      "actions": {
+        "submitted": "Submitted",
+        "resubmitted": "Resubmitted",
+        "approved": "Approved",
+        "auto_approved": "Auto-approved",
+        "rejected": "Rejected"
+      }
+    },
+    "shops": {
+      "title": "Shops",
+      "intro": "Mark reliable sellers as {trusted} so their new and edited products skip the review queue.",
+      "trustedWord": "trusted",
+      "searchPlaceholder": "Search shop or owner email",
+      "cols": {
+        "shop": "Shop",
+        "owner": "Owner",
+        "products": "Products",
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "trusted": "Trusted"
+      },
+      "since": "since {date}",
+      "trust": "Trust {name}"
+    },
+    "categories": {
+      "title": "Marketplace categories",
+      "intro": "The shared taxonomy every seller picks from and shoppers browse. Hide a category to stop new products using it without affecting existing ones."
+    }
+  }
+}
