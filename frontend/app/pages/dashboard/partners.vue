@@ -47,7 +47,7 @@ async function revoke(p: Partnership) {
             <td class="max-w-xs text-muted">{{ p.message || '—' }}</td>
             <td>
               <div v-if="p.status === 'pending' || p.status === 'approved'" class="flex items-center gap-1">
-                <input v-model="rates[p.id]" type="number" min="0" max="90" step="0.5" :placeholder="p.commission_bps !== null ? String(p.commission_bps / 100) : $t('network.partners.default')" class="input w-24 px-2 py-1.5" >
+                <UInput size="md" v-model.number="rates[p.id]" type="number" min="0" max="90" step="0.5" :placeholder="p.commission_bps !== null ? String(p.commission_bps / 100) : $t('network.partners.default')" class="w-24 px-2" />
                 <span class="text-muted">%</span>
               </div>
               <span v-else class="text-muted">{{ p.commission_bps !== null ? pct(p.commission_bps) : $t('network.partners.default') }}</span>
@@ -55,12 +55,12 @@ async function revoke(p: Partnership) {
             <td><StatusBadge :status="p.status" /></td>
             <td class="whitespace-nowrap text-right">
               <template v-if="p.status === 'pending'">
-                <button class="btn-primary btn-sm" @click="decide(p, true)">{{ $t('network.partners.approve') }}</button>
-                <button class="btn-ghost btn-sm ml-2" @click="decide(p, false)">{{ $t('network.partners.decline') }}</button>
+                <UButton size="sm" type="submit" @click="decide(p, true)">{{ $t('network.partners.approve') }}</UButton>
+                <UButton color="neutral" variant="soft" size="sm" type="submit" class="ml-2" @click="decide(p, false)">{{ $t('network.partners.decline') }}</UButton>
               </template>
               <template v-else-if="p.status === 'approved'">
-                <button class="btn-ghost btn-sm" @click="decide(p, true)">{{ $t('network.partners.updateRate') }}</button>
-                <button class="btn-ghost btn-sm ml-2" @click="revoke(p)">{{ $t('network.partners.revoke') }}</button>
+                <UButton color="neutral" variant="soft" size="sm" type="submit" @click="decide(p, true)">{{ $t('network.partners.updateRate') }}</UButton>
+                <UButton color="neutral" variant="soft" size="sm" type="submit" class="ml-2" @click="revoke(p)">{{ $t('network.partners.revoke') }}</UButton>
               </template>
             </td>
           </tr>
@@ -68,7 +68,7 @@ async function revoke(p: Partnership) {
       </table>
     </div>
     <EmptyState v-else class="mt-6" :title="$t('network.partners.emptyTitle')" :text="$t('network.partners.emptyText')" >
-      <NuxtLink to="/dashboard/products" class="btn-ghost">{{ $t('network.partners.manageProducts') }}</NuxtLink>
+      <UButton color="neutral" variant="soft" to="/dashboard/products">{{ $t('network.partners.manageProducts') }}</UButton>
     </EmptyState>
 
     <h2 class="mt-12 font-bold">{{ $t('network.partners.sellFor') }}</h2>
@@ -80,7 +80,7 @@ async function revoke(p: Partnership) {
             <td class="font-semibold">{{ p.supplier_name }}</td>
             <td>{{ p.commission_bps !== null ? pct(p.commission_bps) : $t('network.partners.productDefault') }}</td>
             <td><StatusBadge :status="p.status" /></td>
-            <td class="text-right"><button v-if="p.status === 'approved' || p.status === 'pending'" class="btn-ghost btn-sm" @click="revoke(p)">{{ $t('network.partners.leave') }}</button></td>
+            <td class="text-right"><UButton color="neutral" variant="soft" size="sm" type="submit" v-if="p.status === 'approved' || p.status === 'pending'" @click="revoke(p)">{{ $t('network.partners.leave') }}</UButton></td>
           </tr>
         </tbody>
       </table>

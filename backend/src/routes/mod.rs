@@ -1,7 +1,7 @@
 use axum::{
     extract::DefaultBodyLimit,
     http::{header, HeaderValue},
-    routing::{delete, get, patch, post},
+    routing::{delete, get, patch, post, put},
     Json, Router,
 };
 use serde_json::json;
@@ -19,10 +19,14 @@ use crate::{
 mod ads;
 mod ai_routes;
 mod auth_routes;
+mod barcodes;
+mod oauth;
 mod catalog;
 pub mod categories;
 mod content;
 mod inventory;
+pub mod kyb;
+pub mod logistics;
 pub mod media;
 mod orders;
 mod partners;
@@ -33,6 +37,8 @@ mod shops;
 pub mod social;
 pub mod webhooks;
 mod stats;
+mod two_factor;
+pub mod vehicles;
 
 pub use content::{
     insert as content_insert, CreateContent as CreateContentReq, KINDS as CONTENT_KINDS,
@@ -47,12 +53,36 @@ pub fn router(state: AppState) -> Router {
         .route("/auth/register", post(auth_routes::register))
         .route("/auth/login", post(auth_routes::login))
         .route("/auth/me", get(auth_routes::me))
+        // social login (Google, Facebook, WhatsApp) + connected accounts
+        .route("/auth/providers", get(oauth::providers))
+        .route("/auth/oauth/{provider}/start", post(oauth::start))
+        .route("/auth/oauth/{provider}/callback", get(oauth::callback))
+        .route("/auth/exchange", post(oauth::exchange))
+        .route("/auth/whatsapp/send", post(oauth::whatsapp_send))
+        .route("/auth/whatsapp/verify", post(oauth::whatsapp_verify))
+        .route("/auth/identities", get(oauth::identities))
+        .route("/auth/identities/{provider}", delete(oauth::unlink))
+        .route("/auth/password", post(oauth::set_password))
+        // two-factor authentication
+        .route("/auth/2fa", get(two_factor::status))
+        .route("/auth/2fa/setup", post(two_factor::setup))
+        .route("/auth/2fa/enable", post(two_factor::enable))
+        .route("/auth/2fa/disable", post(two_factor::disable))
+        .route("/auth/2fa/recovery-codes", post(two_factor::regenerate))
+        .route("/auth/2fa/verify", post(two_factor::verify))
         // public catalog / storefronts
         .route("/catalog/products", get(catalog::list_products))
         .route("/catalog/products/{id}", get(catalog::get_product))
         .route("/catalog/categories", get(categories::public_tree))
         .route("/categories", get(categories::public_tree))
         .route("/storefront/{slug}", get(catalog::storefront))
+        // vehicle sellers: search, buyer requests, spec sheets, leads
+        .route("/vehicles", get(vehicles::search))
+        .route("/catalog/products/{id}/leads", post(vehicles::create_lead))
+        .route("/products/{id}/vehicle", get(vehicles::get_vehicle).put(vehicles::put_vehicle))
+        .route("/products/{id}/vehicle/status", post(vehicles::set_sale_status))
+        .route("/shops/{id}/leads", get(vehicles::list_leads))
+        .route("/leads/{id}", patch(vehicles::update_lead))
         .route("/feed/contents", get(content::public_feed))
         .route("/ads/serve", get(ads::serve))
         .route("/ads/{id}/click", post(ads::click))
@@ -61,6 +91,15 @@ pub fn router(state: AppState) -> Router {
         .route("/shops", post(shops::create_shop))
         .route("/shops/{id}", patch(shops::update_shop))
         .route("/shops/{id}/stats", get(stats::shop_stats))
+        // corporate KYC (business verification)
+        .route("/shops/{id}/kyb", get(kyb::get_kyb).put(kyb::save_kyb))
+        .route("/shops/{id}/kyb/submit", post(kyb::submit))
+        .route("/shops/{id}/kyb/documents", post(kyb::upload_document).layer(DefaultBodyLimit::max(12 * 1_048_576)))
+        .route("/kyb/documents/{id}", delete(kyb::delete_document))
+        .route("/kyb/documents/{id}/file", get(kyb::document_file))
+        .route("/admin/kyb", get(kyb::admin_queue))
+        .route("/admin/kyb/{shop_id}", get(kyb::admin_detail))
+        .route("/admin/kyb/{shop_id}/decision", post(kyb::admin_decide))
         // products & inventory
         .route(
             "/shops/{id}/products",
@@ -94,6 +133,17 @@ pub fn router(state: AppState) -> Router {
             get(partners::commissions_payable),
         )
         .route("/commissions/{id}/pay", post(partners::pay_commission))
+        .route("/media/config", get(media::config))
+        .route("/admin/media/backfill", post(media::admin_backfill))
+        // delivery couriers + COD
+        .route("/carriers", get(logistics::carriers))
+        .route("/shipping/options", get(logistics::public_options))
+        .route("/shops/{id}/shipping", get(logistics::shop_shipping))
+        .route("/shops/{id}/shipping/{carrier}", put(logistics::set_shop_shipping))
+        .route("/shops/{id}/cod", get(logistics::cod_ledger))
+        .route("/shops/{id}/cod/update", post(logistics::cod_update))
+        .route("/admin/carriers", get(logistics::admin_carriers).post(logistics::admin_create_carrier))
+        .route("/admin/carriers/{code}", patch(logistics::admin_update_carrier))
         // orders
         .route("/orders/checkout", post(orders::checkout))
         .route("/orders", get(orders::my_orders))
@@ -139,6 +189,8 @@ pub fn router(state: AppState) -> Router {
         .route("/admin/categories", get(categories::admin_tree).post(categories::create_marketplace_category))
         // point of sale
         .route("/shops/{id}/pos/products", get(pos::search))
+        .route("/shops/{id}/pos/scan", get(barcodes::scan))
+        .route("/shops/{id}/barcodes/generate", post(barcodes::generate))
         .route("/shops/{id}/pos/sales", get(pos::list_sales).post(pos::create_sale))
         .route("/shops/{id}/pos/summary", get(pos::summary))
         .route("/pos/sales/{id}", get(pos::get_sale))

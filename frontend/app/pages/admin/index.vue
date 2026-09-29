@@ -92,14 +92,14 @@ const tabs = computed(() => (['pending', 'rejected', 'approved', 'all'] as const
     </div>
 
     <div class="mt-6 flex flex-wrap items-center gap-3">
-      <div class="flex rounded-full border border-line bg-white p-1 text-sm font-semibold">
-        <button v-for="t in tabs" :key="t[0]" class="rounded-full px-3.5 py-1" :class="tab === t[0] && 'bg-ink text-white'" @click="tab = t[0]">{{ t[1] }}</button>
+      <div class="flex rounded-2xl bg-surface p-1 shadow-card text-sm font-semibold">
+        <button v-for="t in tabs" :key="t[0]" class="rounded-xl px-3.5 py-1" :class="tab === t[0] && 'bg-brand-500 text-white shadow-[0_6px_16px_-8px_var(--brand-500)]'" @click="tab = t[0]">{{ t[1] }}</button>
       </div>
-      <input v-model="q" class="input w-64 py-2" :placeholder="$t('admin.review.searchPlaceholder')" >
+      <UInput v-model="q" class="w-64" :placeholder="$t('admin.review.searchPlaceholder')" />
       <div v-if="selected.size" class="ml-auto flex items-center gap-2 text-sm">
         <span class="font-semibold">{{ $t('admin.review.selected', { n: selected.size }) }}</span>
-        <button class="btn-primary btn-sm" @click="bulk('approve')">{{ $t('admin.review.approve') }}</button>
-        <button class="btn-ghost btn-sm text-brand-700" @click="rejecting = true">{{ $t('admin.review.rejectEllipsis') }}</button>
+        <UButton size="sm" type="submit" @click="bulk('approve')">{{ $t('admin.review.approve') }}</UButton>
+        <UButton color="neutral" variant="soft" size="sm" type="submit" class="text-brand-700" @click="rejecting = true">{{ $t('admin.review.rejectEllipsis') }}</UButton>
       </div>
     </div>
     <p v-if="error" class="mt-3 text-sm text-brand-700">{{ error }}</p>
@@ -136,17 +136,17 @@ const tabs = computed(() => (['pending', 'rejected', 'approved', 'all'] as const
     <EmptyState v-else-if="status !== 'pending'" class="mt-4" :title="tab === 'pending' ? $t('admin.review.queueClear') : $t('admin.review.nothingHere')" :text="tab === 'pending' ? $t('admin.review.queueClearText') : undefined" />
 
     <Teleport to="body">
-      <div v-if="rejecting" class="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-4" @click.self="rejecting = false">
+      <div v-if="rejecting" class="fixed inset-0 z-50 grid place-items-center bg-night/40 p-4" @click.self="rejecting = false">
         <form class="card w-full max-w-md space-y-4 p-6 shadow-2xl" @submit.prevent="bulk('reject')">
           <div class="text-lg font-bold">{{ $t('admin.review.rejectTitle', selected.size) }}</div>
-          <textarea v-model="note" required rows="4" class="input" :placeholder="$t('admin.review.rejectPlaceholder')" />
+          <UTextarea v-model="note" required :rows="4" :placeholder="$t('admin.review.rejectPlaceholder')" />
           <div class="flex justify-end gap-2">
-            <button type="button" class="btn-ghost" @click="rejecting = false">{{ $t('common.cancel') }}</button>
-            <button class="btn bg-brand-700 text-white hover:bg-brand-600">{{ $t('admin.review.reject') }}</button>
+            <UButton color="neutral" variant="soft" type="button" @click="rejecting = false">{{ $t('common.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" type="submit" class="bg-brand-700 text-white hover:bg-brand-600">{{ $t('admin.review.reject') }}</UButton>
           </div>
         </form>
       </div>
     </Teleport>
-    <div v-if="notice" class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white shadow-lg">{{ $t(notice.key, notice.n) }}</div>
+    <div v-if="notice" class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-paper shadow-lg">{{ $t(notice.key, notice.n) }}</div>
   </div>
 </template>

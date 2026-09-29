@@ -126,17 +126,17 @@ const tabs = computed(() => [
     <MediaUploader v-if="shopId" class="mt-6" :shop-id="shopId" @uploaded="onUploaded" />
 
     <div class="sticky top-0 z-10 -mx-2 mt-6 flex flex-wrap items-center gap-3 bg-paper/90 px-2 py-2 backdrop-blur">
-      <div class="flex rounded-full border border-line bg-white p-1 text-sm font-semibold">
-        <button v-for="t in tabs" :key="t[0]" class="rounded-full px-3.5 py-1" :class="filter === t[0] && 'bg-ink text-white'" @click="filter = t[0]">{{ t[1] }}</button>
+      <div class="flex rounded-2xl bg-surface p-1 shadow-card text-sm font-semibold">
+        <button v-for="t in tabs" :key="t[0]" class="rounded-xl px-3.5 py-1" :class="filter === t[0] && 'bg-brand-500 text-white shadow-[0_6px_16px_-8px_var(--brand-500)]'" @click="filter = t[0]">{{ t[1] }}</button>
       </div>
-      <input v-model="q" class="input w-56 py-2" :placeholder="$t('media.searchPlaceholder')" >
+      <UInput v-model="q" class="w-56" :placeholder="$t('media.searchPlaceholder')" />
       <div class="ml-auto flex items-center gap-2 text-sm">
         <template v-if="selectMode">
           <span class="font-semibold">{{ $t('media.selected', { n: selected.size }) }}</span>
-          <button class="btn-ghost btn-sm" @click="toggleAll">{{ allSelected ? $t('media.library.clear') : $t('media.library.selectAll') }}</button>
-          <button class="btn-sm btn bg-brand-700 text-white hover:bg-brand-600" @click="bulkDelete">{{ $t('common.delete') }}</button>
+          <UButton color="neutral" variant="soft" size="sm" type="submit" @click="toggleAll">{{ allSelected ? $t('media.library.clear') : $t('media.library.selectAll') }}</UButton>
+          <UButton color="neutral" variant="ghost" size="sm" type="submit" class="bg-brand-700 text-white hover:bg-brand-600" @click="bulkDelete">{{ $t('common.delete') }}</UButton>
         </template>
-        <button v-else-if="items.length" class="btn-ghost btn-sm" @click="toggleAll">{{ $t('media.library.select') }}</button>
+        <UButton color="neutral" variant="soft" size="sm" type="submit" v-else-if="items.length" @click="toggleAll">{{ $t('media.library.select') }}</UButton>
       </div>
     </div>
     <p v-if="error" class="mt-2 text-sm text-brand-700">{{ error }}</p>
@@ -147,15 +147,15 @@ const tabs = computed(() => [
     <div v-else-if="items.length" class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
       <div v-for="a in items" :key="a.id" class="group">
         <button type="button" class="block w-full text-left" @click="openDetail(a)">
-          <MediaTile :asset="a" :selected="selected.has(a.id)" class="aspect-square transition group-hover:shadow-lg">
+          <MediaTile :asset="a" :selected="selected.has(a.id)" show-quality sizes="(min-width: 1024px) 200px, 45vw" class="aspect-square transition group-hover:shadow-lg">
             <span
               class="absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full border-2 text-xs transition"
-              :class="selected.has(a.id) ? 'border-brand-500 bg-brand-500 text-white' : 'border-white bg-ink/30 text-transparent opacity-0 group-hover:opacity-100'"
+              :class="selected.has(a.id) ? 'border-brand-500 bg-brand-500 text-white' : 'border-white bg-night/30 text-transparent opacity-0 group-hover:opacity-100'"
               role="checkbox"
               :aria-checked="selected.has(a.id)"
               @click.stop="toggleSel(a)"
             >✓</span>
-            <span v-if="a.product_count" class="absolute bottom-1.5 right-1.5 rounded-full bg-white/95 px-1.5 text-[10px] font-bold">{{ $t('media.library.productCount', { n: a.product_count }, a.product_count) }}</span>
+            <span v-if="a.product_count" class="absolute bottom-1.5 right-1.5 rounded-full bg-surface/95 px-1.5 text-[10px] font-bold">{{ $t('media.library.productCount', { n: a.product_count }, a.product_count) }}</span>
           </MediaTile>
         </button>
         <div class="mt-1.5 truncate text-xs font-medium">{{ a.alt || a.original_name || $t('media.untitled') }}</div>
@@ -166,12 +166,12 @@ const tabs = computed(() => [
     </div>
     <EmptyState v-else class="mt-4" :title="filter === 'unused' ? $t('media.library.emptyUnusedTitle') : $t('media.library.emptyTitle')" :text="filter === 'unused' ? $t('media.library.emptyUnusedText') : $t('media.library.emptyText')" />
 
-    <div v-if="notice" class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white shadow-lg">{{ notice }}</div>
+    <div v-if="notice" class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-paper shadow-lg">{{ notice }}</div>
 
     <!-- Detail drawer -->
     <Teleport to="body">
-      <div v-if="active" class="fixed inset-0 z-40 bg-ink/30" @click="active = null" />
-      <aside class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-white shadow-2xl transition-transform" :class="active ? 'translate-x-0' : 'translate-x-full'">
+      <div v-if="active" class="fixed inset-0 z-40 bg-night/30" @click="active = null" />
+      <aside class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-surface shadow-2xl transition-transform" :class="active ? 'translate-x-0' : 'translate-x-full'">
         <template v-if="active">
           <div class="flex items-center border-b border-line px-5 py-3">
             <div class="truncate font-bold">{{ active.original_name || (active.kind === 'video' ? $t('media.video') : $t('media.image')) }}</div>
@@ -179,12 +179,12 @@ const tabs = computed(() => [
           </div>
           <div class="flex-1 space-y-5 overflow-y-auto p-5">
             <div class="overflow-hidden rounded-2xl bg-paper">
-              <video v-if="active.kind === 'video'" :src="active.url" :poster="active.thumb_url ?? undefined" controls playsinline class="max-h-80 w-full bg-ink" />
+              <video v-if="active.kind === 'video'" :src="active.url" :poster="active.thumb_url ?? undefined" controls playsinline class="max-h-80 w-full bg-night" />
               <img v-else :src="active.url" :alt="active.alt" class="max-h-80 w-full object-contain" >
             </div>
             <form class="space-y-2" @submit.prevent="saveAlt">
               <label class="label">{{ $t('media.altText') }}</label>
-              <div class="flex gap-2"><input v-model="alt" maxlength="300" class="input" :placeholder="$t('media.library.altPlaceholder')"><button class="btn-dark btn-sm">{{ $t('common.save') }}</button></div>
+              <div class="flex gap-2"><UInput v-model="alt" maxlength="300" :placeholder="$t('media.library.altPlaceholder')" /><UButton color="neutral" size="sm" type="submit">{{ $t('common.save') }}</UButton></div>
             </form>
             <dl class="grid grid-cols-2 gap-3 text-sm">
               <div><dt class="text-xs text-muted">{{ $t('media.library.type') }}</dt><dd class="font-medium">{{ active.mime || active.kind }}</dd></div>
@@ -194,7 +194,7 @@ const tabs = computed(() => [
             </dl>
             <div>
               <label class="label">URL</label>
-              <div class="flex gap-2"><input :value="active.url" readonly class="input bg-paper font-mono text-xs" @focus="($event.target as HTMLInputElement).select()"><button class="btn-ghost btn-sm" @click="copy(active.url)">{{ $t('common.copy') }}</button></div>
+              <div class="flex gap-2"><UInput size="sm" :model-value="active.url" readonly class="font-mono" @focus="($event.target as HTMLInputElement).select()" /><UButton color="neutral" variant="soft" size="sm" type="submit" @click="copy(active.url)">{{ $t('common.copy') }}</UButton></div>
             </div>
             <div>
               <label class="label">{{ $t('media.library.usedIn') }}</label>
@@ -202,14 +202,14 @@ const tabs = computed(() => [
               <ul v-else-if="detail.products.length" class="space-y-1 text-sm">
                 <li v-for="p in detail.products" :key="p.id">
                   <NuxtLink :to="`/dashboard/products/${p.id}`" class="font-medium hover:underline">{{ p.name }}</NuxtLink>
-                  <span v-if="p.is_cover" class="chip ml-1 bg-ink text-white">{{ $t('media.cover') }}</span>
+                  <span v-if="p.is_cover" class="chip ml-1 bg-ink text-paper">{{ $t('media.cover') }}</span>
                 </li>
               </ul>
               <p v-else class="text-sm text-muted">{{ $t('media.library.notUsed') }}</p>
             </div>
           </div>
           <div class="border-t border-line p-4">
-            <button class="btn w-full bg-brand-50 text-brand-700 hover:bg-brand-100" @click="deleteActive">{{ $t('media.library.deleteFromLibrary') }}</button>
+            <UButton color="neutral" variant="ghost" type="submit" class="w-full bg-brand-50 text-brand-700 hover:bg-brand-100" @click="deleteActive">{{ $t('media.library.deleteFromLibrary') }}</UButton>
           </div>
         </template>
       </aside>

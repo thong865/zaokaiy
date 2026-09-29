@@ -13,7 +13,12 @@ use crate::{
 };
 
 pub const CATALOG_COLS: &str = "p.id, p.shop_id, p.sku, p.name, p.description, p.price_cents, p.images, p.category,
-     p.stock, p.allow_resell, p.commission_bps, p.category_id, p.shop_category_id, s.slug AS shop_slug, s.name AS shop_name, s.currency";
+     p.stock, p.allow_resell, p.commission_bps, p.category_id, p.shop_category_id, p.cover, s.slug AS shop_slug, s.name AS shop_name, s.currency,
+     (s.kyb_verified_at IS NOT NULL) AS shop_verified,
+     (SELECT jsonb_build_object('vehicle_type', v.vehicle_type, 'make', v.make, 'model', v.model, 'year', v.year,
+             'mileage_km', v.mileage_km, 'fuel', v.fuel, 'transmission', v.transmission, 'condition', v.condition,
+             'buy_online', v.buy_online, 'sale_status', v.sale_status)
+      FROM vehicle_specs v WHERE v.product_id = p.id) AS vehicle";
 
 /// SQL predicate: reseller shop `$via` may currently sell product `p`.
 pub const RESELL_OK: &str = "EXISTS (
@@ -120,9 +125,21 @@ pub async fn get_product(
         None => vec![],
     };
     let breadcrumb: Vec<Value> = breadcrumb.into_iter().map(|(name, slug)| json!({ "name": name, "slug": slug })).collect();
-    Ok(Json(
-        json!({ "product": product, "via_shop": via_shop, "contents": contents, "media": media, "breadcrumb": breadcrumb }),
-    ))
+    // Vehicle listings: spec sheet + who to call (the broker's storefront when visited through one).
+    let vehicle = crate::routes::vehicles::public_spec(&st, id).await?;
+    let contact = match &vehicle {
+        Some(_) => {
+            let sid = via_shop.as_ref().map(|s| s.id).unwrap_or(product.shop_id);
+            let c: Option<(String, String, String)> = sqlx::query_as("SELECT name, phone, address FROM shops WHERE id = $1")
+                .bind(sid)
+                .fetch_optional(&st.db)
+                .await?;
+            c.map(|(name, phone, address)| json!({ "name": name, "phone": phone, "address": address }))
+        }
+        None => None,
+    };
+    Ok(Json(json!({ "product": product, "via_shop": via_shop, "contents": contents, "media": media,
+                    "breadcrumb": breadcrumb, "vehicle": vehicle, "contact": contact })))
 }
 
 /// Public storefront: the shop's own products plus products it resells.

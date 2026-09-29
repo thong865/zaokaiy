@@ -23,8 +23,8 @@ function pick(assets: MediaAsset[]) {
         <div v-else class="grid size-full place-items-center text-lg text-muted">▢</div>
       </div>
       <div class="flex flex-wrap gap-2">
-        <button type="button" class="btn-ghost btn-sm" @click="picker = true">{{ url ? $t('media.field.change') : $t('media.field.choose') }}</button>
-        <button v-if="url" type="button" class="btn-ghost btn-sm" @click="url = ''">{{ $t('common.remove') }}</button>
+        <UButton color="neutral" variant="soft" size="sm" type="button" @click="picker = true">{{ url ? $t('media.field.change') : $t('media.field.choose') }}</UButton>
+        <UButton color="neutral" variant="soft" size="sm" v-if="url" type="button" @click="url = ''">{{ $t('common.remove') }}</UButton>
       </div>
     </div>
     <MediaPicker v-model="picker" :shop-id="shopId" :multiple="false" :kind="props.kind" @select="pick" />

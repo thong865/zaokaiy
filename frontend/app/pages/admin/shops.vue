@@ -22,7 +22,7 @@ async function setTrusted(s: ShopRow, v: boolean) {
   <div>
     <h1 class="page-title">{{ $t('admin.shops.title') }}</h1>
     <i18n-t keypath="admin.shops.intro" tag="p" class="text-sm text-muted"><template #trusted><b>{{ $t('admin.shops.trustedWord') }}</b></template></i18n-t>
-    <input v-model="q" class="input mt-5 w-72" :placeholder="$t('admin.shops.searchPlaceholder')" >
+    <UInput v-model="q" class="mt-5 w-72" :placeholder="$t('admin.shops.searchPlaceholder')" />
     <p v-if="error" class="mt-3 text-sm text-brand-700">{{ error }}</p>
     <div class="card mt-4 overflow-x-auto">
       <table class="table">
@@ -41,7 +41,7 @@ async function setTrusted(s: ShopRow, v: boolean) {
               <label class="relative inline-flex cursor-pointer items-center">
                 <input type="checkbox" class="peer sr-only" :checked="s.auto_approve" :aria-label="$t('admin.shops.trust', { name: s.name })" @change="setTrusted(s, ($event.target as HTMLInputElement).checked)">
                 <span class="h-6 w-11 rounded-full bg-line transition peer-checked:bg-mint-500" />
-                <span class="absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+                <span class="absolute left-0.5 top-0.5 size-5 rounded-full bg-surface shadow transition peer-checked:translate-x-5" />
               </label>
             </td>
           </tr>

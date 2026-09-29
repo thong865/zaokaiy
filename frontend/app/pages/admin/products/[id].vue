@@ -77,14 +77,14 @@ async function decide(action: 'approve' | 'reject') {
       <div class="space-y-4">
         <div class="card sticky top-20 space-y-3 p-5">
           <div class="font-bold">{{ $t('admin.product.decision') }}</div>
-          <textarea v-model="note" rows="3" class="input" :placeholder="$t('admin.product.notePlaceholder')" />
+          <UTextarea v-model="note" :rows="3" :placeholder="$t('admin.product.notePlaceholder')" />
           <div class="flex flex-wrap gap-1.5">
-            <button v-for="tpl in templates" :key="tpl.full" type="button" class="chip border border-line bg-white px-2 py-1 text-left font-medium hover:border-ink" @click="note = tpl.full">{{ tpl.short }}</button>
+            <button v-for="tpl in templates" :key="tpl.full" type="button" class="chip border border-line bg-surface px-2 py-1 text-left font-medium hover:border-ink" @click="note = tpl.full">{{ tpl.short }}</button>
           </div>
           <p v-if="error" class="text-sm text-brand-700">{{ error }}</p>
           <div class="grid grid-cols-2 gap-2">
-            <button class="btn bg-brand-50 text-brand-700 hover:bg-brand-100" :disabled="busy || !note.trim()" @click="decide('reject')">{{ $t('admin.product.requestChanges') }}</button>
-            <button class="btn-primary" :disabled="busy" @click="decide('approve')">{{ $t('admin.product.approve') }}</button>
+            <UButton color="neutral" variant="ghost" type="submit" class="bg-brand-50 text-brand-700 hover:bg-brand-100" :disabled="busy || !note.trim()" @click="decide('reject')">{{ $t('admin.product.requestChanges') }}</UButton>
+            <UButton type="submit" :disabled="busy" @click="decide('approve')">{{ $t('admin.product.approve') }}</UButton>
           </div>
           <p class="text-xs text-muted">{{ $t('admin.product.decisionHint') }}</p>
         </div>

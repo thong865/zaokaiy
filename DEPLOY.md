@@ -110,6 +110,44 @@ In the Meta and TikTok developer consoles, use:
 
 Then connect each page or number in the dashboard under **Social selling → Channels**. After changing `.env.prod`, run `zk up -d`.
 
+## 9b. Social login (Google, Facebook, WhatsApp)
+
+Each button appears only when its keys are set in `.env.prod`. After editing, run `zk up -d`.
+
+**Google**
+1. [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → **OAuth consent screen**: app name, support email, your domain; scopes `openid`, `email`, `profile`. Publish the app (move it out of "Testing") so anyone can sign in.
+2. **Credentials → Create credentials → OAuth client ID → Web application**.
+   - Authorized redirect URI: `https://DOMAIN/api/auth/oauth/google/callback`
+3. Put the client ID and secret in `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
+
+**Facebook**
+1. [Meta for Developers](https://developers.facebook.com/apps) → your app (it can be the same app used for social selling) → add **Facebook Login**.
+2. Facebook Login → Settings → **Valid OAuth Redirect URIs**: `https://DOMAIN/api/auth/oauth/facebook/callback`
+3. Permissions: `public_profile` and `email`. Switch the app to **Live** mode.
+4. App settings → Basic: copy the App ID and App secret to `FACEBOOK_APP_ID` / `FACEBOOK_APP_SECRET`.
+
+**WhatsApp**
+1. You need a WhatsApp Business Account with a phone number on the **WhatsApp Cloud API** (the number customers will receive codes from).
+2. WhatsApp Manager → Message templates → **Create template → Authentication**, with a *Copy code* button. Name it `zaokaiy_login` (or set `WHATSAPP_OTP_TEMPLATE`), language English (`en_US`). Optionally add a Lao version and set `WHATSAPP_OTP_LANG_LO` to its language code.
+3. Create a **System user** token with `whatsapp_business_messaging` permission → `WHATSAPP_TOKEN`; the number's **Phone number ID** → `WHATSAPP_PHONE_NUMBER_ID`.
+4. Meta charges per authentication message. The API limits each number to 1 code per minute and 5 per hour.
+
+Never set `OTP_DEV_ECHO=true` in production; it returns the code in the API response.
+
+## 9c. Human check (Cloudflare Turnstile) and two-step verification
+
+**Turnstile** protects log in, sign up and WhatsApp code requests from bots. It is off until both keys are set.
+1. Cloudflare dashboard → **Turnstile → Add widget**. Hostname: your `DOMAIN` (add `localhost` for local testing). Widget mode: **Managed**.
+2. Copy the **Site key** to `TURNSTILE_SITE_KEY` and the **Secret key** to `TURNSTILE_SECRET_KEY` in `.env.prod`, then `zk up -d`.
+3. For local testing you can use Cloudflare's test keys: site `1x00000000000000000000AA`, secret `1x0000000000000000000000000000000AA` (always pass).
+
+**Two-step verification (2FA)** needs no setup. Users turn it on from **Account → Two-step verification** with any authenticator app. It then applies to every sign-in method (password, Google, Facebook, WhatsApp). The TOTP secrets are encrypted with `KYC_ENCRYPTION_KEY`. If you change that key, everyone with 2FA on is locked out, so keep it backed up.
+
+A user who loses both their phone and their recovery codes can be reset by an admin in the database:
+```bash
+zk exec db psql -U zaokaiy -c "UPDATE users SET totp_secret=NULL, totp_enabled_at=NULL, totp_last_step=NULL WHERE email='user@example.com'; DELETE FROM user_recovery_codes WHERE user_id=(SELECT id FROM users WHERE email='user@example.com');"
+```
+
 ## 10. Updating
 
 ```bash

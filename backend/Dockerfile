@@ -10,7 +10,7 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates ffmpeg && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /app/target/release/zaokaiy-api /usr/local/bin/zaokaiy-api
-ENV BIND_ADDR=0.0.0.0:8080 MEDIA_DIR=/app/media
-VOLUME /app/media
+ENV BIND_ADDR=0.0.0.0:8080 MEDIA_DIR=/app/media PRIVATE_DIR=/app/private
+VOLUME ["/app/media", "/app/private"]
 EXPOSE 8080
 CMD ["zaokaiy-api"]

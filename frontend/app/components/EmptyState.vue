@@ -1,12 +1,17 @@
 <script setup lang="ts">
-defineProps<{ title: string; text?: string }>()
+defineProps<{ title: string; text?: string; icon?: string }>()
 </script>
 
 <template>
-  <div class="card grid place-items-center px-6 py-14 text-center">
-    <div class="mb-3 grid size-12 place-items-center rounded-2xl bg-brand-50 text-xl">✦</div>
-    <div class="font-bold">{{ title }}</div>
-    <p v-if="text" class="mt-1 max-w-sm text-sm text-muted">{{ text }}</p>
-    <div class="mt-4"><slot /></div>
-  </div>
+  <UEmpty
+    :title="title"
+    :description="text"
+    :icon="icon ?? 'i-lucide-inbox'"
+    variant="naked"
+    size="lg"
+    class="card py-14"
+    :ui="{ avatar: 'size-14 rounded-2xl bg-primary shadow-[0_12px_28px_-10px_var(--ui-primary)] [&>[data-slot=icon]]:text-white', title: 'font-bold text-highlighted', description: 'max-w-sm' }"
+  >
+    <template v-if="$slots.default" #actions><slot /></template>
+  </UEmpty>
 </template>

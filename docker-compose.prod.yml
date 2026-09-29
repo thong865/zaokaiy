@@ -47,6 +47,13 @@ services:
       MEDIA_PUBLIC_URL: ${MEDIA_PUBLIC_URL:-https://${DOMAIN}/media}
       MEDIA_MAX_IMAGE_MB: ${MEDIA_MAX_IMAGE_MB:-15}
       MEDIA_MAX_VIDEO_MB: ${MEDIA_MAX_VIDEO_MB:-200}
+      MEDIA_MIN_IMAGE_EDGE: ${MEDIA_MIN_IMAGE_EDGE:-500}
+      # Corporate KYC: encrypted documents in a private volume (never served)
+      PRIVATE_DIR: /app/private
+      KYC_ENCRYPTION_KEY: ${KYC_ENCRYPTION_KEY:?set KYC_ENCRYPTION_KEY in .env.prod (openssl rand -base64 32)}
+      KYB_REQUIRED_TO_PUBLISH: ${KYB_REQUIRED_TO_PUBLISH:-true}
+      KYB_REVIEW_MONTHS: ${KYB_REVIEW_MONTHS:-12}
+      KYC_S3_BUCKET: ${KYC_S3_BUCKET:-}
       S3_ENDPOINT: ${S3_ENDPOINT:-}
       S3_BUCKET: ${S3_BUCKET:-}
       S3_REGION: ${S3_REGION:-us-east-1}
@@ -60,8 +67,22 @@ services:
       META_APP_SECRET: ${META_APP_SECRET:-}
       META_GRAPH_URL: ${META_GRAPH_URL:-https://graph.facebook.com/v21.0}
       TIKTOK_CLIENT_SECRET: ${TIKTOK_CLIENT_SECRET:-}
+      # Social login (callbacks: https://DOMAIN/api/auth/oauth/{google|facebook}/callback)
+      PUBLIC_API_URL: https://${DOMAIN}/api
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
+      WHATSAPP_TOKEN: ${WHATSAPP_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_OTP_TEMPLATE: ${WHATSAPP_OTP_TEMPLATE:-zaokaiy_login}
+      WHATSAPP_OTP_LANG: ${WHATSAPP_OTP_LANG:-en_US}
+      WHATSAPP_OTP_LANG_LO: ${WHATSAPP_OTP_LANG_LO:-}
+      # Cloudflare Turnstile human check (off while either key is empty)
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
       RUST_LOG: ${RUST_LOG:-info}
-    volumes: [media:/app/media]
+    volumes: [media:/app/media, private:/app/private]
 
   web:
     build: ./frontend
@@ -95,5 +116,6 @@ services:
 volumes:
   pgdata:
   media:
+  private:
   caddy_data:
   caddy_config:

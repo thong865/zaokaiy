@@ -9,7 +9,7 @@ use crate::{
     auth::AuthUser,
     error::{AppError, AppResult},
     models::Product,
-    routes::{media, owned_product, owned_shop, review},
+    routes::{media, owned_product, owned_shop, review, vehicles::{self, VehicleInput}},
     AppState,
 };
 
@@ -37,6 +37,8 @@ pub struct CreateProduct {
     pub low_stock_threshold: Option<i32>,
     pub allow_resell: Option<bool>,
     pub commission_bps: Option<i32>,
+    /// Vehicle spec sheet (car / motorbike listings).
+    pub vehicle: Option<VehicleInput>,
 }
 
 #[derive(Deserialize)]
@@ -56,6 +58,8 @@ pub struct UpdateProduct {
     pub low_stock_threshold: Option<i32>,
     pub allow_resell: Option<bool>,
     pub commission_bps: Option<i32>,
+    /// Vehicle spec sheet: replaces the stored one.
+    pub vehicle: Option<VehicleInput>,
 }
 
 #[derive(Deserialize)]
@@ -191,6 +195,7 @@ pub async fn create(
     if let Some(sc) = req.shop_category_id {
         check_shop_category(&st, shop_id, sc).await?;
     }
+    let vehicle = req.vehicle.clone().map(VehicleInput::clean).transpose()?;
 
     let mut tx = st.db.begin().await?;
     let p: Product = sqlx::query_as(
@@ -270,6 +275,9 @@ pub async fn create(
         .await?;
         media::sync_product_images(&mut *tx, p.id).await?;
     }
+    if let Some(v) = &vehicle {
+        vehicles::upsert(&mut tx, p.id, v).await?;
+    }
     // Publishing on create submits for review (or auto-approves).
     let p = review::apply(&mut tx, &st, p.id, user.id, false).await?;
     tx.commit().await?;
@@ -298,6 +306,7 @@ pub async fn update(
     let content_changed = req.name.as_deref().is_some_and(|n| n.trim() != before.name)
         || req.description.as_deref().is_some_and(|d| d != before.description)
         || req.category_id.is_some_and(|c| Some(c) != before.category_id);
+    let vehicle = req.vehicle.clone().map(VehicleInput::clean).transpose()?;
 
     let mut tx = st.db.begin().await?;
     sqlx::query(
@@ -340,6 +349,9 @@ pub async fn update(
         AppError::Conflict(_) => AppError::Conflict("barcode or social code already used by another product".into()),
         o => o,
     })?;
+    if let Some(v) = &vehicle {
+        vehicles::upsert(&mut tx, id, v).await?;
+    }
     let p = review::apply(&mut tx, &st, id, user.id, content_changed).await?;
     tx.commit().await?;
     Ok(Json(p))

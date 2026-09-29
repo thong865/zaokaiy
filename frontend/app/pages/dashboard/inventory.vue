@@ -41,13 +41,13 @@ const reasonTone: Record<string, string> = { sale: 'text-brand-700', restock: 't
     <h2 class="mt-8 font-bold">{{ $t('dash.inventory.lowStock') }} <span class="text-muted">({{ low.length }})</span></h2>
     <div v-if="low.length" class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <div v-for="p in low" :key="p.id" class="card flex items-center gap-3 p-4">
-        <ProductThumb :src="p.images?.[0]" :name="p.name" class="size-12 shrink-0" rounded="rounded-lg" />
+        <ProductThumb :image="p.cover" :src="p.images?.[0]" :name="p.name" sizes="48px" class="size-12 shrink-0" rounded="rounded-lg" />
         <div class="min-w-0 flex-1">
           <div class="truncate font-semibold">{{ p.name }}</div>
           <div class="text-xs" :class="p.stock === 0 ? 'font-bold text-brand-700' : 'text-muted'">{{ $t('dash.inventory.leftAlert', { n: p.stock, min: p.low_stock_threshold }) }}</div>
         </div>
-        <input v-model.number="restockQty[p.id]" type="number" min="1" placeholder="10" class="input w-16 px-2 py-1.5" >
-        <button class="btn-dark btn-sm" @click="restock(p)">{{ $t('dash.inventory.addStock') }}</button>
+        <UInput size="md" v-model.number="restockQty[p.id]" type="number" min="1" placeholder="10" class="w-16 px-2" />
+        <UButton color="neutral" size="sm" type="submit" @click="restock(p)">{{ $t('dash.inventory.addStock') }}</UButton>
       </div>
     </div>
     <p v-else class="mt-3 text-sm text-muted">{{ $t('dash.inventory.allStocked') }}</p>

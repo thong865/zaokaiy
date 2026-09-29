@@ -5,7 +5,7 @@ Sellers open shops and manage products and inventory. They can open their catalo
 | Layer | Stack |
 |---|---|
 | Backend | Rust · Axum 0.8 · SQLx 0.8 (Postgres) · JWT + Argon2 · Anthropic Messages API |
-| Frontend | Nuxt 4 · Vue 3 · Tailwind CSS v4 |
+| Frontend | Nuxt 4 · Vue 3 · Nuxt UI 4 (Vuesax-style theme in `app/app.config.ts`) · Tailwind CSS v4 · Lucide icons · light/dark/system colour mode |
 | Database | PostgreSQL 16. Migrations are embedded and run automatically when the API starts. |
 
 ## Quick start
@@ -44,9 +44,13 @@ python scripts/review_test.py
 python scripts/pos_test.py
 python scripts/mock_graph.py &   # fake Meta Graph API for the social test
 python scripts/social_test.py    # API started with META_VERIFY_TOKEN=vt META_APP_SECRET=appsecret TIKTOK_CLIENT_SECRET=ttsecret META_GRAPH_URL=http://127.0.0.1:9998
+python scripts/logistics_test.py  # couriers, delivery fees, COD ledger (ADMIN_EMAILS=admin@demo.dev)
+python scripts/kyb_test.py       # business verification (KYC): documents, review, publish gate
+python scripts/vehicle_test.py   # vehicle dealers: search, buyer requests, deposits (ADMIN_EMAILS=admin@demo.dev)
+python scripts/oauth_test.py     # social login; API env listed at the top of the script (mock Google/Facebook/WhatsApp)
 ```
 The tests and seed need the API started with `ADMIN_EMAILS=admin@demo.dev` (the default in `.env.example`).
-Demo logins (password `password123`): `siam@demo.dev`, `lanna@demo.dev` (suppliers), `bee@demo.dev` (creator/sell-staff), `buyer@demo.dev`, `admin@demo.dev` (platform admin → `/admin`).
+Demo logins (password `password123`): `siam@demo.dev`, `lanna@demo.dev` (suppliers), `bee@demo.dev` (creator/sell-staff), `buyer@demo.dev`, `auto@demo.dev` (vehicle dealer "Vientiane Auto"). Siam Crafts and Vientiane Auto are verified businesses; Lanna Botanics is waiting in the KYC queue, `admin@demo.dev` (platform admin → `/admin`).
 
 ## Core concepts
 
@@ -96,8 +100,51 @@ Demo logins (password `password123`): `siam@demo.dev`, `lanna@demo.dev` (supplie
 - Social selling understands Lao comments (`ເອົາ A01 2`, `ຈອງ B03`); Lao trigger words are in the defaults, and the settings page has Lao, Thai and English reply templates.
 - Set `NUXT_PUBLIC_I18N_BASE_URL` to the public site URL in production.
 
+**Sign-in.** Email or phone + password, or **Continue with Google / Facebook / WhatsApp** (only the methods configured on the server are shown).
+- Google and Facebook use the OAuth authorization-code flow run by the API (state + PKCE for Google, `appsecret_proof` for Facebook). After the callback the browser gets a one-time code that `/auth/exchange` swaps for the session token, so tokens never appear in URLs.
+- WhatsApp sends a 6-digit code through a WhatsApp Cloud API *authentication* template. Codes are hashed, expire after 10 minutes, allow 5 attempts, and are rate-limited per number (1 per minute, 5 per hour).
+- Linking: a Google login with a verified email joins the account with that email. A Facebook email that matches an existing account is refused with a prompt to sign in and connect Facebook from **/account**, so nobody can take over an account through Facebook. On **/account** people connect or disconnect methods and set a password; the last usable method can't be removed.
+
+**Delivery & cash on delivery (Laos).** Couriers: Anousith Express, HAL Express, Mixay Express and "shop delivery". Admins can add more at **/admin/carriers**, each with an optional tracking-page template using `{tracking}`.
+- These couriers have no public booking API. The seller drops the parcel at the courier and types the tracking number; the system records courier, tracking and COD.
+- **/dashboard/shipping:** per courier, the seller sets the fee, who pays it, home delivery with its fee, free shipping over an amount, and COD with a COD fee. The fee can be added at checkout, paid by the customer to the courier at pickup (ປາຍທາງ), or free.
+- **Checkout:** the buyer picks courier, branch pickup or home delivery, and Pay now or COD, both in the cart and on the comment-order checkout `/c/:token`. `orders.grand_total_cents` = items + shipping (when charged at checkout) + COD fee = `cod_amount_cents` for COD.
+- COD orders ship without online payment. **/print/label/{order|social}/:id** prints an A6 label with the COD amount.
+- **/dashboard/cod** is the ledger: `pending` → `collected` (courier has the cash; order completes) → `remitted` (courier paid the shop, with transfer reference). `returned` = refused parcel: order cancelled, stock back (movement reason `return`).
+
+**Business verification (corporate KYC).** Shops are either *individual* or *registered business* (`shops.entity_type`, chosen at onboarding or in Shop settings). Business shops verify their company at **/dashboard/verification** before they can publish products (`KYB_REQUIRED_TO_PUBLISH`, default on; drafts are always allowed). Verified shops show a **Verified business** badge on their storefront and product pages.
+- **What the seller provides:** company type (Lao enterprise forms: sole enterprise, sole/limited/public company, partnership, state enterprise, cooperative, foreign branch), registered names (EN/Lao), enterprise registration number and date, tax ID, country, province, address, business activity and contacts. They also add the people behind it: one legal representative, the directors, and the beneficial owners (≥25%) with ownership %, ID type/number, nationality, date of birth and PEP flag. Plus the payout bank account and documents.
+- **Documents:** the registration certificate, tax certificate and representative ID are required. Limited, public and sole companies and partnerships also need a shareholder register. An authorisation letter is needed when the representative is not a director. Business licence, articles, proof of address, bank proof and other documents are optional. Files are JPG/PNG/WebP/PDF up to 10 MB, checked by content, with an optional expiry date; expired or rejected documents don't count. A live checklist shows what's missing.
+- **Privacy & security:**
+  - ID and bank account numbers are encrypted with AES-256-GCM (`KYC_ENCRYPTION_KEY`) and shown to the owner only as the last 4 characters.
+  - Documents are encrypted files in **private storage**: `PRIVATE_DIR`, a separate volume that is never served, or `KYC_S3_BUCKET` / the `private/` prefix on S3. They are only readable through `GET /kyb/documents/:id/file` by the owner or an admin, with `no-store` and a sandbox CSP.
+  - Every admin view of a verification or a document is written to the audit log (`kyb_events`).
+  - **Back up `KYC_ENCRYPTION_KEY` separately: without it the documents can't be read.**
+- **Workflow:** draft → submitted (locked) → approved | changes requested | rejected; approved → revoked.
+  - Admins work the queue at **/admin/kyb**. It shows risk flags: PEP, a registration number used by another account, a foreign representative or owner, documents expiring within 30 days, and under 25% ownership declared.
+  - The admin detail page shows full numbers behind a "show" toggle and previews documents in the page. Admins accept or reject each document with a reason, then approve, request changes, reject or revoke with a note. Approval sets a review date (`KYB_REVIEW_MONTHS`, default 12).
+  - A verified shop that edits its details stays verified while the update is reviewed. Revoking removes the badge and takes the shop's products off sale.
+  - A business shop in review or verified can't switch itself back to individual.
+
+**Vehicle sellers (cars, motorbikes, trucks).** A shop with `vertical = vehicle` ("Vehicle dealer" in onboarding or Shop settings) gets a showroom storefront at `/s/:slug`, and every vehicle listing is also browsable at **/vehicles**.
+- A listing is a normal product plus a spec sheet (`vehicle_specs`): type, condition, make (canonical spelling, e.g. `toyota` → `Toyota`), model, variant, year, mileage, fuel, transmission, body type, drive, engine cc, power, seats, doors, colour, previous owners, registration and plate province, location, features, warranty. Plate number and VIN are private; the public page shows only the last 4 VIN characters. The product form shows a "Vehicle details" section (on by default for vehicle dealers) and offers "2020 Toyota Hilux Revo 2.4 E" as the title.
+- **Showroom:** tabs per type with counts; filters for make → model, year range, price range, max mileage, condition, fuel, transmission and body type (with counts), text search and sorting, all in the URL so filtered links can be shared. `GET /vehicles?shop=<slug>` returns items, total and facets.
+- **Listing page:** key facts, spec table, features, Call and WhatsApp buttons (pre-filled message with the link), a flat-rate loan calculator (down payment, term, rate), and a request form: **ask a question, book a test drive (date & time), make an offer, reserve (deposit), ask about finance**. No account is needed; Lao numbers like `020 5555 1234` are accepted. Repeats within 10 minutes are merged and each phone number can send 5 requests per hour.
+- **Selling terms per vehicle:** reservation deposit, negotiable, finance available, and "allow buying online". By default vehicles are not in the cart; checkout refuses vehicles that aren't buy-online or aren't available.
+- **Sale status:** `available → reserved → sold`. Recording a reservation deposit on a request reserves the vehicle for 7 days (one reservation at a time; it lapses automatically). Sold vehicles stay listed for 7 days with a "Sold" badge, sort last and take no new requests. Selling the last unit online marks it sold; cancelling that order makes it available again.
+- **/dashboard/leads** ("Buyer requests", shown for vehicle dealers): filter by status and type, call or WhatsApp the buyer, set the appointment and private notes, move through `new → contacted → scheduled → won | lost`, record or undo the deposit, and mark the vehicle sold or available.
+- Brokers: a sell-staff storefront that resells a vehicle (normal partnership + listing) shows it in its showroom, and buyers who arrive through it contact the broker.
+- Marketplace categories *Vehicles › Cars / Motorbikes / Trucks & Vans / Parts & Accessories* are created by migration `0010_vehicles.sql`.
+
 **POS (counter selling).** The till is at `/pos`:
-- Scan a barcode (a USB or Bluetooth scanner types the code then Enter), search, or tap products. Custom items are supported.
+- Scan a barcode, search, or tap products. Custom items are supported.
+- **Barcode scanning:**
+  - USB and Bluetooth scanners work anywhere on the POS screen, with no need to click the search box. A scanner's fast keystrokes are told apart from human typing, and form fields are never hijacked.
+  - **Camera scanning** works on phones and tablets: the browser's BarcodeDetector where available, otherwise a bundled ZXing WebAssembly reader (Safari, Firefox, desktop Linux). It is loaded only when the camera opens, works offline, and adds an item once per appearance in view.
+  - Type `3*` or `3x` before a code to add 3. Each scan beeps (can be turned off) and highlights the line.
+  - `GET /shops/{id}/pos/scan` matches equivalent codes, so a scanner sending UPC-A, EAN-13 or GTIN-14 finds the same product, as does the SKU. Scanner noise such as an AIM prefix or CR/LF is ignored.
+  - **Unknown barcode:** the cashier searches for the product and saves the code to it on the spot (it scans next time), or opens "create product" with the code filled in.
+- **Barcode labels** (`/dashboard/barcodes`): generate in-store EAN-13 codes (prefix `20`, valid check digit, unique per shop) for products without one, then print labels on a 40×30 or 50×30 mm label printer or an A4 sheet (3×8). Labels show name, price and a vector barcode. The product form can scan a barcode with the camera, validate its check digit, preview it and generate one.
 - Discounts: per line or on the whole bill (amount or %). Price overrides per line.
 - Split payments across cash, card, transfer, QR/PromptPay and other, with quick cash buttons and change calculation (change can only come from cash).
 - Keyboard: F2 = search, F9 = charge, Esc = back.
@@ -120,6 +167,10 @@ Demo logins (password `password123`): `siam@demo.dev`, `lanna@demo.dev` (supplie
 - A product gallery holds up to 15 items and can be reordered; the first item is the cover. `products.images` is kept in sync with the gallery for catalog listings.
 - Deleting an item that is still used is blocked (409) unless you pass `force`, which removes it from every product, post and ad.
 - Storage is either `local` (disk, served at `/media`) or `s3` (AWS, MinIO, R2). See `backend/.env.example`.
+- **Fast images:** each upload gets responsive **WebP** versions (320/640/960/1280/1920 px, never upscaled, quality 82), a ~0.5 KB blurred placeholder and a dominant colour. A JPEG (or PNG with transparency) fallback is kept for zoom and sharing. `products.cover` stores the first gallery image with its versions, so catalog cards download a ~20-60 KB file instead of the full-size original.
+- The frontend `AppImage` component renders `<picture>` + `srcset`/`sizes`, native lazy loading, `decoding=async`, width/height (no layout shift) and the blurred placeholder. The product page's main image loads eagerly with `fetchpriority=high`.
+- **Minimum resolution:** `MEDIA_MIN_IMAGE_EDGE` (default 500 px on the shortest side) is checked in the browser before upload and enforced by the API. Tiles under 1000 px get a "Low res" badge; 1200×1200+ is recommended.
+- Older uploads get their versions from a background job at API start; admins can also run `POST /admin/media/backfill`. Image processing is limited to one job per CPU core, and files in one upload are processed in parallel.
 
 **Ads.** CPC campaigns on your own or resold products. `/ads/serve` records impressions. `/ads/:id/click` charges the CPC and ends the campaign automatically when the budget runs out.
 
@@ -132,10 +183,20 @@ Demo logins (password `password123`): `siam@demo.dev`, `lanna@demo.dev` (supplie
 
 ## API map (`/api`)
 ```
-auth         POST /auth/register · POST /auth/login · GET /auth/me
+auth         POST /auth/register · POST /auth/login (email or +phone) · GET /auth/me · GET /auth/providers
+delivery     GET /carriers · GET /shipping/options?shops= · GET /shops/{id}/shipping · PUT /shops/{id}/shipping/{carrier}
+             GET /shops/{id}/cod · POST /shops/{id}/cod/update · GET|POST /admin/carriers · PATCH /admin/carriers/{code}
+social login POST /auth/oauth/{google|facebook}/start · GET /auth/oauth/{p}/callback · POST /auth/exchange
+             POST /auth/whatsapp/send · POST /auth/whatsapp/verify · GET /auth/identities · DELETE /auth/identities/{p} · POST /auth/password
+vehicles     GET /vehicles?shop=&type=&make=&model=&year_min=&year_max=&price_min=&price_max=&km_max=&fuel=&transmission=&condition=&body=&q=&sort=
+             POST /catalog/products/:id/leads · GET /shops/:id/leads · PATCH /leads/:id
+             GET|PUT /products/:id/vehicle · POST /products/:id/vehicle/status
 catalog      GET /catalog/products · GET /catalog/products/:id?via= · GET /catalog/categories
              GET /storefront/:slug · GET /feed/contents · GET /ads/serve · POST /ads/:id/click
-shops        GET /me/shops · POST /shops · PATCH /shops/:id · GET /shops/:id/stats
+shops        GET /me/shops · POST /shops · PATCH /shops/:id {entity_type…} · GET /shops/:id/stats
+kyb          GET|PUT /shops/:id/kyb · POST /shops/:id/kyb/submit · POST /shops/:id/kyb/documents (multipart kind, file, expires_on)
+             DELETE /kyb/documents/:id · GET /kyb/documents/:id/file
+             GET /admin/kyb?status=&q= · GET /admin/kyb/:shop_id · POST /admin/kyb/:shop_id/decision {action, note, documents}
 products     GET|POST /shops/:id/products · GET|PATCH|DELETE /products/:id
 inventory    POST /products/:id/stock · GET /shops/:id/inventory/movements · GET /shops/:id/inventory/low-stock
 sell-staff   GET /marketplace/products · GET|POST /shops/:id/partnerships

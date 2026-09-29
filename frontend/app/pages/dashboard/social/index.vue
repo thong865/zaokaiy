@@ -121,13 +121,13 @@ const replyLabel = (s: string) => (s && s !== 'none' && te(`social.board.reply.$
           <div class="font-bold">{{ $t('social.board.live', { title: board.session.title }) }}</div>
           <div class="text-xs text-muted">{{ $t('social.board.since', { time: fmtTime(board.session.started_at) }) }}</div>
         </div>
-        <button class="btn-ghost btn-sm ml-auto" @click="endLive">{{ $t('social.board.endLive') }}</button>
+        <UButton color="neutral" variant="soft" size="sm" type="submit" class="ml-auto" @click="endLive">{{ $t('social.board.endLive') }}</UButton>
       </template>
       <template v-else>
         <div class="text-sm"><b>{{ $t('social.board.noSession') }}</b> {{ $t('social.board.noSessionHint') }}</div>
         <form class="ml-auto flex gap-2" @submit.prevent="startLive">
-          <input v-model="title" class="input w-56 py-2" :placeholder="$t('social.board.titlePlaceholder')" >
-          <button class="btn-primary btn-sm">{{ $t('social.board.goLive') }}</button>
+          <UInput v-model="title" class="w-56" :placeholder="$t('social.board.titlePlaceholder')" />
+          <UButton size="sm" type="submit">{{ $t('social.board.goLive') }}</UButton>
         </form>
       </template>
     </div>
@@ -144,13 +144,13 @@ const replyLabel = (s: string) => (s && s !== 'none' && te(`social.board.reply.$
       <section>
         <div class="mb-3 flex items-center justify-between">
           <h2 class="font-bold">{{ $t('social.board.productCodes') }}</h2>
-          <button class="btn-ghost btn-sm" :disabled="assigning" @click="assignCodes">{{ $t('social.board.autoAssign') }}</button>
+          <UButton color="neutral" variant="soft" size="sm" type="submit" :disabled="assigning" @click="assignCodes">{{ $t('social.board.autoAssign') }}</UButton>
         </div>
         <div v-if="board?.products.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <div v-for="p in board.products" :key="p.id" class="card overflow-hidden" :class="p.stock === 0 && 'opacity-60'">
             <div class="relative">
               <ProductThumb :src="p.image" :name="p.name" class="aspect-[4/3]" rounded="rounded-none" />
-              <span class="absolute left-2 top-2 rounded-lg bg-ink px-2 py-1 font-mono text-lg font-extrabold text-white">{{ p.code }}</span>
+              <span class="absolute left-2 top-2 rounded-lg bg-ink px-2 py-1 font-mono text-lg font-extrabold text-paper">{{ p.code }}</span>
               <span v-if="p.stock === 0" class="absolute right-2 top-2 rounded-lg bg-brand-700 px-2 py-0.5 text-xs font-bold text-white">{{ $t('social.board.soldOut') }}</span>
             </div>
             <div class="p-3">
@@ -167,7 +167,7 @@ const replyLabel = (s: string) => (s && s !== 'none' && te(`social.board.reply.$
           </div>
         </div>
         <EmptyState v-else :title="$t('social.board.emptyTitle')" :text="$t('social.board.emptyText')">
-          <button class="btn-primary" @click="assignCodes">{{ $t('social.board.autoAssign') }}</button>
+          <UButton type="submit" @click="assignCodes">{{ $t('social.board.autoAssign') }}</UButton>
         </EmptyState>
       </section>
 
@@ -182,15 +182,15 @@ const replyLabel = (s: string) => (s && s !== 'none' && te(`social.board.reply.$
             <div class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted">{{ $t('social.board.testComment') }} <span class="font-normal normal-case tracking-normal">{{ $t('social.board.testCommentHint') }}</span></div>
             <div class="flex gap-2">
               <select v-model="sim.provider" class="input w-28 py-1.5 text-xs"><option value="facebook">Facebook</option><option value="tiktok">TikTok</option><option value="whatsapp">WhatsApp</option></select>
-              <input v-model="sim.user_name" class="input py-1.5 text-xs" :placeholder="$t('social.board.customerName')" >
-              <button type="button" class="btn-ghost btn-sm" :title="$t('social.board.randomBuyer')" @click="randomBuyer">🎲</button>
+              <UInput size="sm" v-model="sim.user_name" :placeholder="$t('social.board.customerName')" />
+              <UButton color="neutral" variant="soft" size="sm" type="button" :title="$t('social.board.randomBuyer')" @click="randomBuyer">🎲</UButton>
             </div>
             <div class="flex gap-2">
-              <input v-model="sim.message" class="input py-1.5" :placeholder="$t('social.board.messagePlaceholder')" >
-              <button class="btn-dark btn-sm" :disabled="simBusy">{{ $t('social.board.send') }}</button>
+              <UInput size="md" v-model="sim.message" :placeholder="$t('social.board.messagePlaceholder')" />
+              <UButton color="neutral" size="sm" type="submit" :disabled="simBusy">{{ $t('social.board.send') }}</UButton>
             </div>
             <div v-if="board?.products.length" class="flex flex-wrap gap-1">
-              <button v-for="p in board.products.slice(0, 6)" :key="p.id" type="button" class="chip border border-line bg-white px-2 py-0.5 font-mono hover:border-ink" @click="randomBuyer(); simulate(`CF ${p.code}`)">CF {{ p.code }}</button>
+              <button v-for="p in board.products.slice(0, 6)" :key="p.id" type="button" class="chip border border-line bg-surface px-2 py-0.5 font-mono hover:border-ink" @click="randomBuyer(); simulate(`CF ${p.code}`)">CF {{ p.code }}</button>
             </div>
           </form>
         </div>

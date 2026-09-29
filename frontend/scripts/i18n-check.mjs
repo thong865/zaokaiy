@@ -21,6 +21,12 @@ let bad = 0
 for (const k of en.keys()) if (!lo.has(k)) { console.log('missing in lo:', k); bad++ }
 for (const k of lo.keys()) if (!en.has(k)) { console.log('missing in en:', k); bad++ }
 for (const [k, v] of lo) if (typeof v === 'string' && v.trim() === '' ) { console.log('empty lo:', k); bad++ }
+// Every message must compile with vue-i18n's parser (catches unescaped @ | { } — write {'@'} for a literal @).
+const { baseCompile } = await import('@intlify/message-compiler')
+for (const [lang, m] of [['en', en], ['lo', lo]])
+  for (const [k, v] of m)
+    if (typeof v === 'string')
+      baseCompile(v, { onError: (e) => { console.log(`syntax error in ${lang}:${k} (${e.message}): ${v}`); bad++ } })
 const prefixes = new Set([...en.keys()].flatMap((k) => k.split('.').map((_, i, a) => a.slice(0, i + 1).join('.'))))
 const walk = (d) => readdirSync(d).flatMap((f) => (statSync(join(d, f)).isDirectory() ? walk(join(d, f)) : [join(d, f)]))
 for (const file of walk(join(root, 'app')).filter((f) => /\.(vue|ts)$/.test(f))) {

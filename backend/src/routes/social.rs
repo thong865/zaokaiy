@@ -21,7 +21,7 @@ use crate::{
     auth::AuthUser,
     error::{AppError, AppResult},
     models::Shop,
-    routes::owned_shop,
+    routes::{logistics, owned_shop},
     social_parser, AppState,
 };
 
@@ -78,6 +78,16 @@ pub struct SocialOrder {
     pub paid_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub carrier_code: Option<String>,
+    pub delivery_type: String,
+    pub fee_payer: String,
+    pub cod_fee_cents: i64,
+    pub cod_amount_cents: i64,
+    pub cod_status: String,
+    pub cod_remit_ref: String,
+    pub cod_collected_at: Option<DateTime<Utc>>,
+    pub cod_remitted_at: Option<DateTime<Utc>>,
+    pub shipped_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Serialize, FromRow)]
@@ -205,14 +215,35 @@ async fn recalc(tx: &mut Transaction<'_, Postgres>, order_id: Uuid, shipping_fla
     .bind(order_id)
     .fetch_one(&mut **tx)
     .await?;
-    let shipping = if subtotal > 0 { shipping_flat } else { 0 };
-    sqlx::query("UPDATE social_orders SET subtotal_cents=$2, shipping_cents=$3, total_cents=$2+$3, updated_at=now() WHERE id=$1")
-        .bind(order_id)
-        .bind(subtotal)
-        .bind(shipping)
-        .execute(&mut **tx)
-        .await?;
-    Ok((subtotal, subtotal + shipping))
+    // With a courier chosen at checkout, its terms decide the fee (and COD fee); otherwise the flat social fee.
+    let (shop_id, carrier, delivery, method): (Uuid, Option<String>, String, String) =
+        sqlx::query_as("SELECT shop_id, carrier_code, delivery_type, payment_method FROM social_orders WHERE id=$1")
+            .bind(order_id)
+            .fetch_one(&mut **tx)
+            .await?;
+    let quoted = match (&carrier, subtotal > 0) {
+        (Some(c), true) => logistics::quote(&mut **tx, shop_id, c, &delivery, method == "cod", subtotal).await.ok(),
+        _ => None,
+    };
+    let (shipping, cod_fee, payer, cod) = match &quoted {
+        Some(q) => (q.charged_fee_cents, q.cod_fee_cents, q.fee_payer.clone(), q.cod),
+        None => (if subtotal > 0 && carrier.is_none() { shipping_flat } else { 0 }, 0, "buyer".to_string(), false),
+    };
+    let total = subtotal + shipping + cod_fee;
+    sqlx::query(
+        "UPDATE social_orders SET subtotal_cents=$2, shipping_cents=$3, total_cents=$4, cod_fee_cents=$5, fee_payer=$6,
+            cod_amount_cents = CASE WHEN $7 THEN $4 ELSE 0 END, updated_at=now() WHERE id=$1",
+    )
+    .bind(order_id)
+    .bind(subtotal)
+    .bind(shipping)
+    .bind(total)
+    .bind(cod_fee)
+    .bind(payer)
+    .bind(cod)
+    .execute(&mut **tx)
+    .await?;
+    Ok((subtotal, total))
 }
 
 // ---------------------------------------------------------------------------
@@ -994,6 +1025,7 @@ pub async fn get_order(State(st): State<AppState>, user: AuthUser, Path(id): Pat
 #[derive(Deserialize)]
 pub struct StatusReq {
     pub status: String,
+    pub carrier_code: Option<String>,
     pub tracking_no: Option<String>,
     pub payment_ref: Option<String>,
     pub payment_method: Option<String>,
@@ -1002,15 +1034,23 @@ pub struct StatusReq {
 pub async fn set_status(State(st): State<AppState>, user: AuthUser, Path(id): Path<Uuid>, Json(r): Json<StatusReq>) -> AppResult<Json<Value>> {
     owned_order(&st, id, &user).await?;
     let mut tx = st.db.begin().await?;
-    let (current, number): (String, String) = sqlx::query_as("SELECT status, number FROM social_orders WHERE id=$1 FOR UPDATE")
-        .bind(id)
-        .fetch_one(&mut *tx)
-        .await?;
+    let (current, number, method): (String, String, String) =
+        sqlx::query_as("SELECT status, number, payment_method FROM social_orders WHERE id=$1 FOR UPDATE")
+            .bind(id)
+            .fetch_one(&mut *tx)
+            .await?;
     let ok = matches!(
         (current.as_str(), r.status.as_str()),
         ("open", "confirmed") | ("open" | "confirmed", "paid") | ("paid", "shipped") | ("shipped", "completed")
             | ("open" | "confirmed" | "paid", "cancelled")
-    );
+    ) || (method == "cod" && current == "confirmed" && r.status == "shipped");
+    let carrier = r.carrier_code.as_deref().map(str::trim).filter(|c| !c.is_empty()).map(String::from);
+    if let Some(c) = &carrier {
+        let known: bool = sqlx::query_scalar("SELECT EXISTS (SELECT 1 FROM carriers WHERE code = $1)").bind(c).fetch_one(&mut *tx).await?;
+        if !known {
+            return Err(AppError::bad("unknown courier"));
+        }
+    }
     if !ok {
         return Err(AppError::bad(format!("cannot move a {current} order to {}", r.status)));
     }
@@ -1022,7 +1062,12 @@ pub async fn set_status(State(st): State<AppState>, user: AuthUser, Path(id): Pa
             paid_at = CASE WHEN $2='paid' THEN now() ELSE paid_at END,
             confirmed_at = CASE WHEN $2 IN ('confirmed','paid') THEN COALESCE(confirmed_at, now()) ELSE confirmed_at END,
             tracking_no = COALESCE($3, tracking_no), payment_ref = COALESCE($4, payment_ref),
-            payment_method = COALESCE($5, payment_method)
+            payment_method = COALESCE($5, payment_method),
+            carrier_code = COALESCE($6, carrier_code),
+            shipped_at = CASE WHEN $2='shipped' THEN now() ELSE shipped_at END,
+            cod_status = CASE WHEN $2='cancelled' AND cod_status='pending' THEN 'none'
+                              WHEN $2='completed' AND cod_status='pending' THEN 'collected' ELSE cod_status END,
+            cod_collected_at = CASE WHEN $2='completed' AND cod_status='pending' THEN now() ELSE cod_collected_at END
          WHERE id=$1",
     )
     .bind(id)
@@ -1030,6 +1075,7 @@ pub async fn set_status(State(st): State<AppState>, user: AuthUser, Path(id): Pa
     .bind(r.tracking_no)
     .bind(r.payment_ref)
     .bind(r.payment_method)
+    .bind(carrier)
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;
@@ -1147,7 +1193,18 @@ async fn by_token(st: &AppState, token: &str) -> AppResult<Uuid> {
 
 pub async fn public_get(State(st): State<AppState>, Path(token): Path<String>) -> AppResult<Json<Value>> {
     let id = by_token(&st, &token).await?;
-    Ok(Json(order_doc(&st, id, false).await?))
+    let mut doc = order_doc(&st, id, false).await?;
+    let shop_id: Uuid = sqlx::query_scalar("SELECT shop_id FROM social_orders WHERE id=$1").bind(id).fetch_one(&st.db).await?;
+    doc["shipping_options"] = json!(logistics::options_for(&st.db, shop_id).await?);
+    Ok(Json(doc))
+}
+
+/// A refused COD parcel came back: release the stock and cancel.
+pub async fn cancel_returned(tx: &mut Transaction<'_, Postgres>, id: Uuid) -> AppResult<()> {
+    let number: String = sqlx::query_scalar("SELECT number FROM social_orders WHERE id=$1").bind(id).fetch_one(&mut **tx).await?;
+    release(tx, id, &number, "Returned").await?;
+    sqlx::query("UPDATE social_orders SET status='cancelled', updated_at=now() WHERE id=$1").bind(id).execute(&mut **tx).await?;
+    Ok(())
 }
 
 #[derive(Deserialize)]
@@ -1156,6 +1213,13 @@ pub struct ConfirmReq {
     pub phone: String,
     pub address: String,
     pub note: Option<String>,
+    /// Courier chosen by the customer (required when the shop has couriers set up).
+    pub carrier_code: Option<String>,
+    /// branch | home
+    pub delivery_type: Option<String>,
+    /// Pay cash on delivery.
+    #[serde(default)]
+    pub cod: bool,
 }
 
 pub async fn public_confirm(State(st): State<AppState>, Path(token): Path<String>, Json(r): Json<ConfirmReq>) -> AppResult<Json<Value>> {
@@ -1163,10 +1227,26 @@ pub async fn public_confirm(State(st): State<AppState>, Path(token): Path<String
     if r.name.trim().is_empty() || r.phone.trim().len() < 6 || r.address.trim().len() < 5 {
         return Err(AppError::bad("please fill in your name, phone and full address"));
     }
-    let hold: i32 = sqlx::query_scalar("SELECT s.social_hold_hours FROM social_orders o JOIN shops s ON s.id=o.shop_id WHERE o.id=$1")
-        .bind(id)
-        .fetch_one(&st.db)
-        .await?;
+    let (hold, shop_id, flat, subtotal): (i32, Uuid, i64, i64) = sqlx::query_as(
+        "SELECT s.social_hold_hours, s.id, s.social_shipping_cents, o.subtotal_cents FROM social_orders o JOIN shops s ON s.id=o.shop_id WHERE o.id=$1",
+    )
+    .bind(id)
+    .fetch_one(&st.db)
+    .await?;
+    let mut tx = st.db.begin().await?;
+    let carrier = r.carrier_code.as_deref().map(str::trim).filter(|c| !c.is_empty());
+    let delivery = r.delivery_type.as_deref().unwrap_or("branch");
+    match carrier {
+        // Validates the option (and COD) against the shop's current terms.
+        Some(c) => {
+            logistics::quote(&mut tx, shop_id, c, delivery, r.cod, subtotal).await?;
+        }
+        None if logistics::shop_has_shipping(&mut tx, shop_id).await? => {
+            return Err(AppError::bad("choose a delivery option"));
+        }
+        None if r.cod => return Err(AppError::bad("cash on delivery is not available with this courier")),
+        None => {}
+    }
     let updated: Option<Uuid> = sqlx::query_scalar(
         "UPDATE social_orders SET status='confirmed', ship_name=$2, ship_phone=$3, ship_address=$4, customer_note=$5,
             confirmed_at=now(), expires_at = GREATEST(expires_at, now() + make_interval(hours => $6)), updated_at=now()
@@ -1178,11 +1258,24 @@ pub async fn public_confirm(State(st): State<AppState>, Path(token): Path<String
     .bind(r.address.trim())
     .bind(r.note.unwrap_or_default().chars().take(500).collect::<String>())
     .bind(hold)
-    .fetch_optional(&st.db)
+    .fetch_optional(&mut *tx)
     .await?;
     if updated.is_none() {
         return Err(AppError::bad("this order can no longer be changed"));
     }
+    sqlx::query(
+        "UPDATE social_orders SET carrier_code=$2, delivery_type=$3,
+            payment_method = CASE WHEN $4 THEN 'cod' WHEN payment_method = 'cod' THEN '' ELSE payment_method END,
+            cod_status = CASE WHEN $4 THEN 'pending' ELSE 'none' END WHERE id=$1",
+    )
+    .bind(id)
+    .bind(carrier)
+    .bind(delivery)
+    .bind(r.cod)
+    .execute(&mut *tx)
+    .await?;
+    recalc(&mut tx, id, flat).await?;
+    tx.commit().await?;
     sqlx::query("UPDATE social_customers SET phone=$2, address=$3 WHERE id=(SELECT customer_id FROM social_orders WHERE id=$1)")
         .bind(id)
         .bind(r.phone.trim())
@@ -1203,6 +1296,9 @@ pub async fn public_payment(State(st): State<AppState>, Path(token): Path<String
     let id = by_token(&st, &token).await?;
     if r.reference.trim().is_empty() {
         return Err(AppError::bad("enter the transfer reference or slip number"));
+    }
+    if r.method.trim() == "cod" {
+        return Err(AppError::bad("choose cash on delivery with your delivery details"));
     }
     let updated: Option<Uuid> = sqlx::query_scalar(
         "UPDATE social_orders SET payment_method=$2, payment_ref=$3, updated_at=now() WHERE id=$1 AND status='confirmed' RETURNING id",

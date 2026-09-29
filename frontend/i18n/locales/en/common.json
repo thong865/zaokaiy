@@ -77,7 +77,9 @@
       "dashboard": "Dashboard",
       "searchPlaceholder": "Search products, shops…",
       "viewStorefront": "View storefront ↗",
-      "menu": "Menu"
+      "menu": "Menu",
+      "account": "Account",
+      "home": "Home"
     },
     "dashNav": {
       "shop": "Shop",
@@ -99,12 +101,16 @@
       "ads": "Ads",
       "content": "Creator studio",
       "assistant": "AI assistant",
-      "settings": "Shop settings"
+      "settings": "Shop settings",
+      "shipping": "Delivery",
+      "cod": "COD",
+      "barcodes": "Barcode labels"
     },
     "adminNav": {
       "review": "Review queue",
       "categories": "Marketplace categories",
-      "shops": "Shops"
+      "shops": "Shops",
+      "carriers": "Couriers"
     },
     "status": {
       "active": "Active",
@@ -136,7 +142,10 @@
       "live": "Live",
       "sent": "Sent",
       "failed": "Failed",
-      "simulated": "Simulated"
+      "simulated": "Simulated",
+      "collected": "Cash collected",
+      "remitted": "Remitted",
+      "returned": "Returned"
     },
     "review": {
       "not_submitted": "Not submitted",
@@ -164,6 +173,17 @@
       "generic": "Something went wrong",
       "notFound": "Not found",
       "pageNotFound": "Page not found"
+    },
+    "theme": {
+      "label": "Theme: {mode}",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "footer": {
+      "shop": "Shop",
+      "sell": "Sell",
+      "account": "Account"
     }
   }
 }

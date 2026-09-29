@@ -82,6 +82,12 @@
       "usedIn": "Used in",
       "notUsed": "Not used by any product.",
       "deleteFromLibrary": "Delete from library"
+    },
+    "quality": {
+      "lowRes": "Low res",
+      "lowResHint": "{w}×{h} px — upload {rec} px or larger for sharp zoom",
+      "tooSmall": "Too small ({w}×{h} px) — at least {min} px on the shortest side",
+      "hint": "Best results: {rec}×{rec} px or larger, square, product on a plain background. Minimum {min} px. Photos are converted to fast WebP in several sizes automatically."
     }
   }
 }

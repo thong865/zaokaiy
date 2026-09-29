@@ -159,16 +159,16 @@ const reassignOptions = computed(() => props.nodes.filter((x) => x.id !== deleti
 <template>
   <div>
     <div class="flex flex-wrap items-center gap-2">
-      <button type="button" class="btn-primary btn-sm" @click="startAdd(null)">{{ $t('category.tree.addCategory') }}</button>
-      <button v-if="nodes.some((n) => n.child_count)" type="button" class="btn-ghost btn-sm" @click="toggleAll">{{ allCollapsed ? $t('category.tree.expandAll') : $t('category.tree.collapseAll') }}</button>
+      <UButton size="sm" type="button" @click="startAdd(null)">{{ $t('category.tree.addCategory') }}</UButton>
+      <UButton color="neutral" variant="soft" size="sm" v-if="nodes.some((n) => n.child_count)" type="button" @click="toggleAll">{{ allCollapsed ? $t('category.tree.expandAll') : $t('category.tree.collapseAll') }}</UButton>
       <span class="ml-auto text-xs text-muted">{{ $t('category.tree.count', { n: nodes.length }, nodes.length) }} · {{ $t('category.tree.upToLevels', { n: MAX_CATEGORY_DEPTH }) }}</span>
     </div>
     <p v-if="error" class="mt-3 text-sm text-brand-700">{{ error }}</p>
 
     <form v-if="adding === null" class="card mt-3 flex gap-2 p-3" @submit.prevent="add">
-      <input id="cat-new-input" v-model="newName" maxlength="80" class="input" :placeholder="$t('category.tree.newTopPh')" >
-      <button class="btn-dark btn-sm">{{ $t('common.add') }}</button>
-      <button type="button" class="btn-ghost btn-sm" @click="adding = undefined">{{ $t('common.cancel') }}</button>
+      <UInput id="cat-new-input" v-model="newName" maxlength="80" :placeholder="$t('category.tree.newTopPh')" />
+      <UButton color="neutral" size="sm" type="submit">{{ $t('common.add') }}</UButton>
+      <UButton color="neutral" variant="soft" size="sm" type="button" @click="adding = undefined">{{ $t('common.cancel') }}</UButton>
     </form>
 
     <div v-if="nodes.length" class="card mt-3 divide-y divide-line/70 overflow-hidden">
@@ -194,23 +194,23 @@ const reassignOptions = computed(() => props.nodes.filter((x) => x.id !== deleti
               <div class="truncate text-[11px] text-muted">/{{ n.slug }}<template v-if="n.child_count"> · {{ $t('category.tree.subCount', { n: n.child_count }, n.child_count) }}</template></div>
             </div>
             <div class="flex shrink-0 items-center gap-1 opacity-60 transition group-hover:opacity-100">
-              <button v-if="n.depth < MAX_CATEGORY_DEPTH - 1" type="button" class="btn-ghost btn-sm" @click="startAdd(n.id)">{{ $t('category.tree.addSub') }}</button>
-              <button type="button" class="btn-ghost btn-sm px-2" :aria-label="$t('category.tree.moveUp')" @click="move(n, -1)">↑</button>
-              <button type="button" class="btn-ghost btn-sm px-2" :aria-label="$t('category.tree.moveDown')" @click="move(n, 1)">↓</button>
-              <button type="button" class="btn-ghost btn-sm" @click="startEdit(n)">{{ $t('common.edit') }}</button>
-              <button type="button" class="btn-ghost btn-sm px-2 text-brand-700" :aria-label="$t('common.delete')" @click="askDelete(n)">✕</button>
+              <UButton color="neutral" variant="soft" size="sm" v-if="n.depth < MAX_CATEGORY_DEPTH - 1" type="button" @click="startAdd(n.id)">{{ $t('category.tree.addSub') }}</UButton>
+              <UButton color="neutral" variant="soft" size="sm" type="button" class="px-2" :aria-label="$t('category.tree.moveUp')" @click="move(n, -1)">↑</UButton>
+              <UButton color="neutral" variant="soft" size="sm" type="button" class="px-2" :aria-label="$t('category.tree.moveDown')" @click="move(n, 1)">↓</UButton>
+              <UButton color="neutral" variant="soft" size="sm" type="button" @click="startEdit(n)">{{ $t('common.edit') }}</UButton>
+              <UButton color="neutral" variant="soft" size="sm" type="button" class="px-2 text-brand-700" :aria-label="$t('common.delete')" @click="askDelete(n)">✕</UButton>
             </div>
           </div>
 
           <form v-if="adding === n.id" class="flex gap-2 bg-paper px-3 py-2" :style="{ paddingLeft: `${40 + (n.depth + 1) * 28}px` }" @submit.prevent="add">
-            <input id="cat-new-input" v-model="newName" maxlength="80" class="input py-2" :placeholder="$t('category.tree.newSubPh', { name: n.name })" >
-            <button class="btn-dark btn-sm">{{ $t('common.add') }}</button>
-            <button type="button" class="btn-ghost btn-sm" @click="adding = undefined">{{ $t('common.cancel') }}</button>
+            <UInput id="cat-new-input" v-model="newName" maxlength="80" :placeholder="$t('category.tree.newSubPh', { name: n.name })" />
+            <UButton color="neutral" size="sm" type="submit">{{ $t('common.add') }}</UButton>
+            <UButton color="neutral" variant="soft" size="sm" type="button" @click="adding = undefined">{{ $t('common.cancel') }}</UButton>
           </form>
 
           <form v-if="editing?.id === n.id" class="grid gap-3 bg-paper p-4 sm:grid-cols-2" @submit.prevent="saveEdit">
-            <div><label class="label">{{ $t('common.name') }}</label><input v-model="draft.name" required maxlength="80" class="input" ></div>
-            <div><label class="label">{{ $t('category.tree.slug') }}</label><input v-model="draft.slug" class="input font-mono text-xs" ></div>
+            <div><label class="label">{{ $t('common.name') }}</label><UInput v-model="draft.name" required maxlength="80" /></div>
+            <div><label class="label">{{ $t('category.tree.slug') }}</label><UInput size="sm" v-model="draft.slug" class="font-mono" /></div>
             <div>
               <label class="label">{{ $t('category.tree.parent') }}</label>
               <select v-model="draft.parent_id" class="input">
@@ -221,14 +221,14 @@ const reassignOptions = computed(() => props.nodes.filter((x) => x.id !== deleti
             <div class="flex items-end">
               <label class="flex items-center gap-2 text-sm"><input v-model="draft.active" type="checkbox" class="size-4 accent-brand-500"> {{ $t('category.tree.visible') }}</label>
             </div>
-            <div class="sm:col-span-2"><label class="label">{{ $t('common.description') }}</label><textarea v-model="draft.description" rows="2" class="input" /></div>
+            <div class="sm:col-span-2"><label class="label">{{ $t('common.description') }}</label><UTextarea v-model="draft.description" :rows="2" /></div>
             <div class="sm:col-span-2">
               <MediaField v-if="scope === 'shop' && shopId" v-model="draft.image_url" :shop-id="shopId" kind="image" :label="$t('category.tree.image')" />
-              <template v-else><label class="label">{{ $t('category.tree.imageUrl') }}</label><input v-model="draft.image_url" class="input" placeholder="https://…" ></template>
+              <template v-else><label class="label">{{ $t('category.tree.imageUrl') }}</label><UInput v-model="draft.image_url" placeholder="https://…" /></template>
             </div>
             <div class="flex justify-end gap-2 sm:col-span-2">
-              <button type="button" class="btn-ghost btn-sm" @click="editing = null">{{ $t('common.cancel') }}</button>
-              <button class="btn-primary btn-sm">{{ $t('common.save') }}</button>
+              <UButton color="neutral" variant="soft" size="sm" type="button" @click="editing = null">{{ $t('common.cancel') }}</UButton>
+              <UButton size="sm" type="submit">{{ $t('common.save') }}</UButton>
             </div>
           </form>
         </div>
@@ -238,7 +238,7 @@ const reassignOptions = computed(() => props.nodes.filter((x) => x.id !== deleti
 
     <!-- Marketplace delete with products: reassign -->
     <Teleport to="body">
-      <div v-if="deleting" class="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-4" @click.self="deleting = null">
+      <div v-if="deleting" class="fixed inset-0 z-50 grid place-items-center bg-night/40 p-4" @click.self="deleting = null">
         <form class="card w-full max-w-md space-y-4 p-6 shadow-2xl" @submit.prevent="remove(deleting!, reassignTo)">
           <div class="text-lg font-bold">{{ $t('category.tree.deleteTitle', { name: deleting.name }) }}</div>
           <p class="text-sm text-muted">{{ deleteError }}</p>
@@ -251,12 +251,12 @@ const reassignOptions = computed(() => props.nodes.filter((x) => x.id !== deleti
           </div>
           <p class="text-xs text-muted">{{ $t('category.tree.deleteTip') }}</p>
           <div class="flex justify-end gap-2">
-            <button type="button" class="btn-ghost" @click="deleting = null">{{ $t('common.cancel') }}</button>
-            <button class="btn bg-brand-700 text-white hover:bg-brand-600" :disabled="!reassignTo">{{ $t('category.tree.moveAndDelete') }}</button>
+            <UButton color="neutral" variant="soft" type="button" @click="deleting = null">{{ $t('common.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" type="submit" class="bg-brand-700 text-white hover:bg-brand-600" :disabled="!reassignTo">{{ $t('category.tree.moveAndDelete') }}</UButton>
           </div>
         </form>
       </div>
     </Teleport>
-    <div v-if="notice" class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white shadow-lg">{{ notice }}</div>
+    <div v-if="notice" class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-paper shadow-lg">{{ notice }}</div>
   </div>
 </template>

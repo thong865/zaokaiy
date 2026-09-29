@@ -77,7 +77,9 @@
       "dashboard": "ໜ້າຈັດການ",
       "searchPlaceholder": "ຄົ້ນຫາສິນຄ້າ, ຮ້ານ…",
       "viewStorefront": "ເບິ່ງໜ້າຮ້ານ ↗",
-      "menu": "ເມນູ"
+      "menu": "ເມນູ",
+      "account": "ບັນຊີ",
+      "home": "ໜ້າຫຼັກ"
     },
     "dashNav": {
       "shop": "ຮ້ານ",
@@ -99,12 +101,16 @@
       "ads": "ໂຄສະນາ",
       "content": "ສະຕູດິໂອຄຣີເອເຕີ",
       "assistant": "ຜູ້ຊ່ວຍ AI",
-      "settings": "ຕັ້ງຄ່າຮ້ານ"
+      "settings": "ຕັ້ງຄ່າຮ້ານ",
+      "shipping": "ການຈັດສົ່ງ",
+      "cod": "ເກັບເງິນປາຍທາງ (COD)",
+      "barcodes": "ປ້າຍບາໂຄດ"
     },
     "adminNav": {
       "review": "ກວດສິນຄ້າ",
       "categories": "ໝວດໝູ່ຕະຫຼາດ",
-      "shops": "ຮ້ານຄ້າ"
+      "shops": "ຮ້ານຄ້າ",
+      "carriers": "ບໍລິສັດຂົນສົ່ງ"
     },
     "status": {
       "active": "ເປີດຂາຍ",
@@ -136,7 +142,10 @@
       "live": "ກຳລັງໄລຟ໌",
       "sent": "ສົ່ງແລ້ວ",
       "failed": "ລົ້ມເຫຼວ",
-      "simulated": "ຈຳລອງ"
+      "simulated": "ຈຳລອງ",
+      "collected": "ເກັບເງິນແລ້ວ",
+      "remitted": "ໂອນໃຫ້ຮ້ານແລ້ວ",
+      "returned": "ຕີກັບ"
     },
     "review": {
       "not_submitted": "ຍັງບໍ່ໄດ້ສົ່ງກວດ",
@@ -164,6 +173,17 @@
       "generic": "ມີບາງຢ່າງຜິດພາດ",
       "notFound": "ບໍ່ພົບຂໍ້ມູນ",
       "pageNotFound": "ບໍ່ພົບໜ້ານີ້"
+    },
+    "theme": {
+      "label": "ຮູບແບບສີ: {mode}",
+      "light": "ສະຫວ່າງ",
+      "dark": "ມືດ",
+      "system": "ຕາມລະບົບ"
+    },
+    "footer": {
+      "shop": "ຊື້ເຄື່ອງ",
+      "sell": "ຂາຍ",
+      "account": "ບັນຊີ"
     }
   }
 }

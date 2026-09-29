@@ -73,10 +73,10 @@ async function adjust() {
       </template>
       <template #description-tools>
         <div class="mb-1.5 flex items-center gap-2">
-          <select v-model="ai.language" class="rounded-lg border border-line bg-white px-2 py-1 text-xs" :aria-label="$t('product.edit.aiLanguage')">
+          <select v-model="ai.language" class="rounded-lg border border-line bg-surface px-2 py-1 text-xs" :aria-label="$t('product.edit.aiLanguage')">
             <option v-for="l in aiLanguages" :key="l" :value="l">{{ $t(`product.edit.langs.${l}`) }}</option>
           </select>
-          <button type="button" class="btn-dark btn-sm" :disabled="ai.busy" @click="writeDescription">{{ ai.busy ? $t('product.edit.writing') : $t('product.edit.writeAi') }}</button>
+          <UButton color="neutral" size="sm" type="button" :disabled="ai.busy" @click="writeDescription">{{ ai.busy ? $t('product.edit.writing') : $t('product.edit.writeAi') }}</UButton>
         </div>
       </template>
       <template #after>
@@ -85,13 +85,13 @@ async function adjust() {
         <div class="card space-y-3 p-5">
           <div class="font-bold">{{ $t('product.edit.adjustStock') }}</div>
           <div class="flex gap-2">
-            <input v-model="stock.delta" type="number" class="input w-24" >
+            <UInput v-model.number="stock.delta" type="number" class="w-24" />
             <select v-model="stock.reason" class="input"><option value="restock">{{ $t('dash.inventory.reasons.restock') }}</option><option value="adjust">{{ $t('dash.inventory.reasons.adjust') }}</option><option value="return">{{ $t('dash.inventory.reasons.return') }}</option></select>
           </div>
-          <input v-model="stock.note" :placeholder="$t('product.edit.notePh')" class="input" >
-          <button type="button" class="btn-ghost w-full" @click="adjust">{{ $t('product.edit.apply') }}</button>
+          <UInput v-model="stock.note" :placeholder="$t('product.edit.notePh')" />
+          <UButton color="neutral" variant="soft" type="button" class="w-full" @click="adjust">{{ $t('product.edit.apply') }}</UButton>
         </div>
-        <NuxtLink :to="{ path: '/dashboard/content', query: { product: product.id } }" class="btn-ghost w-full">{{ $t('product.edit.createContent') }}</NuxtLink>
+        <UButton color="neutral" variant="soft" :to="{ path: '/dashboard/content', query: { product: product.id } }" class="w-full">{{ $t('product.edit.createContent') }}</UButton>
       </template>
     </ProductForm>
   </div>

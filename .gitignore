@@ -1,6 +1,7 @@
 backend/target/
 backend/.env
 backend/media/
+backend/private/
 frontend/node_modules/
 frontend/.nuxt/
 frontend/.output/

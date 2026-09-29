@@ -1,0 +1,29 @@
+{
+  "barcode": {
+    "title": "Barcode labels",
+    "intro": "Give every product a barcode, then print labels to stick on them. Scanning at the POS adds the item instantly. Products without a manufacturer barcode get an in-store EAN-13 (starting with 20).",
+    "missing": "{n} product has no barcode yet. | {n} products have no barcode yet.",
+    "generateAll": "Generate for all",
+    "generated": "Generated {n} barcode. | Generated {n} barcodes.",
+    "layout": "Label size",
+    "layouts": {
+      "roll40x30": "Label printer 40 × 30 mm",
+      "roll50x30": "Label printer 50 × 30 mm",
+      "a4": "A4 sheet · 3 × 8 labels (70 × 37 mm)"
+    },
+    "showName": "Product name",
+    "showPrice": "Price",
+    "print": "Print {n} label | Print {n} labels",
+    "pickedWithoutCode": "{n} selected product has no barcode and will be skipped. | {n} selected products have no barcode and will be skipped.",
+    "generateThese": "Generate now",
+    "search": "Search products…",
+    "onlyMissing": "Only without barcode",
+    "selectAll": "Select all",
+    "clear": "Clear",
+    "code": "Barcode",
+    "copies": "Labels",
+    "generateOne": "Generate",
+    "empty": "No products.",
+    "labelCount": "{n} label | {n} labels"
+  }
+}

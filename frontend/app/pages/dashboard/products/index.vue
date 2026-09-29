@@ -33,10 +33,10 @@ function refDebounced(src: Ref<string>, ms = 300) {
   <div>
     <div class="flex flex-wrap items-center justify-between gap-3">
       <h1 class="page-title">{{ $t('product.list.title') }}</h1>
-      <NuxtLink to="/dashboard/products/new" class="btn-primary">{{ $t('product.list.newProduct') }}</NuxtLink>
+      <UButton to="/dashboard/products/new">{{ $t('product.list.newProduct') }}</UButton>
     </div>
     <div class="mt-5 flex flex-wrap gap-3">
-      <input v-model="q" :placeholder="$t('product.list.searchPh')" class="input max-w-xs" >
+      <UInput v-model="q" :placeholder="$t('product.list.searchPh')" class="max-w-xs" />
       <select v-model="status" class="input w-40">
         <option value="">{{ $t('product.list.allStatuses') }}</option><option value="active">{{ $t('common.status.active') }}</option><option value="draft">{{ $t('common.status.draft') }}</option><option value="archived">{{ $t('common.status.archived') }}</option>
       </select>
@@ -56,7 +56,7 @@ function refDebounced(src: Ref<string>, ms = 300) {
           <tr v-for="p in products" :key="p.id" class="cursor-pointer hover:bg-paper" @click="navigateTo(`/dashboard/products/${p.id}`)">
             <td>
               <div class="flex items-center gap-3">
-                <ProductThumb :src="p.images?.[0]" :name="p.name" class="size-10 shrink-0" rounded="rounded-lg" />
+                <ProductThumb :image="p.cover" :src="p.images?.[0]" :name="p.name" sizes="40px" class="size-10 shrink-0" rounded="rounded-lg" />
                 <div><div class="font-semibold">{{ p.name }}</div><div class="text-xs text-muted">{{ p.sku }}<template v-if="catName(p.shop_category_id)"> · {{ catName(p.shop_category_id) }}</template></div></div>
               </div>
             </td>
@@ -73,7 +73,7 @@ function refDebounced(src: Ref<string>, ms = 300) {
       </table>
     </div>
     <EmptyState v-else class="mt-5" :title="$t('product.list.emptyTitle')" :text="$t('product.list.emptyText')">
-      <NuxtLink to="/dashboard/products/new" class="btn-primary">{{ $t('product.list.add') }}</NuxtLink>
+      <UButton to="/dashboard/products/new">{{ $t('product.list.add') }}</UButton>
     </EmptyState>
   </div>
 </template>

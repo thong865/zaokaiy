@@ -1,6 +1,8 @@
 mod ai;
 mod auth;
+mod captcha;
 mod config;
+mod crypto;
 mod error;
 mod i18n;
 mod media;
@@ -8,6 +10,7 @@ mod models;
 mod routes;
 mod social_parser;
 mod storage;
+mod totp;
 
 use std::{sync::Arc, time::Duration};
 
@@ -22,6 +25,10 @@ pub struct AppState {
     pub cfg: Arc<config::Config>,
     pub http: reqwest::Client,
     pub storage: storage::Storage,
+    /// Private storage for KYC documents (never served publicly).
+    pub private: storage::Storage,
+    /// Encryption for KYC documents and identity / bank numbers.
+    pub sealer: crypto::Sealer,
 }
 
 #[tokio::main]
@@ -86,11 +93,15 @@ async fn main() {
         tracing::warn!("ANTHROPIC_API_KEY not set — AI features use offline templates");
     }
     let storage = storage::Storage::from_config(&cfg);
+    let private = storage::Storage::private_from_config(&cfg);
+    let sealer = crypto::Sealer::from_config(&cfg.kyc_encryption_key, &cfg.jwt_secret);
     let state = AppState {
         db,
         cfg: Arc::new(cfg),
         http,
         storage,
+        private,
+        sealer,
     };
 
     // Background: expire unpaid social orders and release their stock.
@@ -104,6 +115,28 @@ async fn main() {
                     Ok(0) => {}
                     Ok(n) => tracing::info!(n, "expired social orders"),
                     Err(e) => tracing::warn!(error = %e, "social expiry job failed"),
+                }
+            }
+        });
+    }
+
+    // Background: responsive renditions for images uploaded before they existed (batches of 50).
+    {
+        let st = state.clone();
+        tokio::spawn(async move {
+            loop {
+                match routes::media::backfill_variants(&st, 50).await {
+                    Ok((0, 0, _)) => break,
+                    Ok((ok, failed, remaining)) => {
+                        tracing::info!(ok, failed, remaining, "media renditions backfill");
+                        if remaining == 0 {
+                            break;
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!(error = %e, "media renditions backfill failed");
+                        break;
+                    }
                 }
             }
         });

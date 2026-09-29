@@ -6,12 +6,16 @@ use uuid::Uuid;
 #[derive(Debug, Serialize, FromRow)]
 pub struct User {
     pub id: Uuid,
-    pub email: String,
+    pub email: Option<String>,
     #[serde(skip)]
-    pub password_hash: String,
+    pub password_hash: Option<String>,
     pub display_name: String,
     pub role: String,
     pub created_at: DateTime<Utc>,
+    pub phone: Option<String>,
+    pub avatar_url: Option<String>,
+    /// Set while two-factor authentication is on.
+    pub totp_enabled_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Serialize, FromRow, Clone)]
@@ -44,6 +48,12 @@ pub struct Shop {
     pub social_reply_template: String,
     pub social_soldout_template: String,
     pub payment_instructions: String,
+    /// 'general' or 'vehicle' (vehicle showroom storefront).
+    pub vertical: String,
+    /// 'individual' or 'business' (business shops go through corporate KYC).
+    pub entity_type: String,
+    pub kyb_status: String,
+    pub kyb_verified_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Serialize, FromRow, Clone)]
@@ -71,6 +81,8 @@ pub struct Product {
     pub reviewed_at: Option<DateTime<Utc>>,
     pub barcode: Option<String>,
     pub social_code: Option<String>,
+    /// First gallery image with responsive renditions: {url, thumb_url, width, height, variants, placeholder, color, alt}.
+    pub cover: Option<serde_json::Value>,
 }
 
 /// Product joined with the supplier shop — used by public catalog views.
@@ -92,6 +104,11 @@ pub struct CatalogProduct {
     pub shop_slug: String,
     pub shop_name: String,
     pub currency: String,
+    pub cover: Option<serde_json::Value>,
+    /// The supplier shop passed business verification.
+    pub shop_verified: bool,
+    /// Key vehicle facts when the product is a vehicle listing.
+    pub vehicle: Option<serde_json::Value>,
     /// Set when the product is shown through a reseller's storefront.
     pub via_shop_id: Option<Uuid>,
 }
@@ -133,6 +150,20 @@ pub struct Order {
     pub shipping_address: serde_json::Value,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub carrier_code: Option<String>,
+    pub delivery_type: String,
+    pub fee_payer: String,
+    pub shipping_fee_cents: i64,
+    pub payment_method: String,
+    pub cod_fee_cents: i64,
+    pub cod_amount_cents: i64,
+    pub cod_status: String,
+    pub cod_remit_ref: String,
+    pub cod_collected_at: Option<DateTime<Utc>>,
+    pub cod_remitted_at: Option<DateTime<Utc>>,
+    pub tracking_no: String,
+    pub shipped_at: Option<DateTime<Utc>>,
+    pub grand_total_cents: i64,
 }
 
 #[derive(Debug, Serialize, FromRow)]

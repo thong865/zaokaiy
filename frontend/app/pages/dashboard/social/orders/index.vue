@@ -38,10 +38,10 @@ const hint = (r: Row) => {
     <h1 class="page-title">{{ $t('social.title') }}</h1>
     <SocialNav class="mt-5" />
     <div class="flex flex-wrap items-center gap-3">
-      <div class="flex max-w-full gap-1 overflow-x-auto rounded-full border border-line bg-white p-1 text-sm font-semibold">
-        <button v-for="tab in tabs" :key="tab[0]" class="whitespace-nowrap rounded-full px-3 py-1" :class="status === tab[0] && 'bg-ink text-white'" @click="status = tab[0]">{{ tab[1] }}</button>
+      <div class="flex max-w-full gap-1 overflow-x-auto rounded-2xl bg-surface p-1 shadow-card text-sm font-semibold">
+        <button v-for="tab in tabs" :key="tab[0]" class="whitespace-nowrap rounded-xl px-3 py-1" :class="status === tab[0] && 'bg-brand-500 text-white shadow-[0_6px_16px_-8px_var(--brand-500)]'" @click="status = tab[0]">{{ tab[1] }}</button>
       </div>
-      <input v-model="q" class="input w-56 py-2" :placeholder="$t('social.orders.searchPlaceholder')" >
+      <UInput v-model="q" class="w-56" :placeholder="$t('social.orders.searchPlaceholder')" />
     </div>
     <div v-if="rows.length" class="card mt-5 overflow-x-auto">
       <table class="table">
@@ -62,7 +62,7 @@ const hint = (r: Row) => {
       </table>
     </div>
     <EmptyState v-else class="mt-5" :title="$t('social.orders.emptyTitle')" :text="$t('social.orders.emptyText')" >
-      <NuxtLink to="/dashboard/social" class="btn-primary">{{ $t('social.orders.openBoard') }}</NuxtLink>
+      <UButton to="/dashboard/social">{{ $t('social.orders.openBoard') }}</UButton>
     </EmptyState>
   </div>
 </template>

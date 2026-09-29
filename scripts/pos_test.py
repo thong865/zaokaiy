@@ -128,6 +128,41 @@ def main():
     assert d["vat_cents"] == 700 and d["shop"]["tax_id"] == "0105555555555"
     call("GET", f"/orders/{order['id']}/document", token=owner)
     call("GET", f"/orders/{order['id']}/document", token=stranger, expect=403)
+    # --- Barcode scanning ---
+    sc = call("GET", f"/shops/{sid}/pos/scan?code=8850000000011", token=owner)
+    assert sc["product"]["id"] == mug["id"] and sc["product"]["exact"], sc
+    # Scanner noise: AIM prefix, CR/LF, spaces
+    assert call("GET", f"/shops/{sid}/pos/scan?code=%5DE0%208850000000011%0D%0A", token=owner)["product"]["id"] == mug["id"]
+    # UPC-A stored, EAN-13 (leading 0) scanned — and the other way round
+    upc = call("POST", f"/shops/{sid}/products", {"sku": "UPC", "name": "Imported snack", "price_cents": 2000, "initial_stock": 5, "barcode": "036000291452"}, owner)
+    assert call("GET", f"/shops/{sid}/pos/scan?code=0036000291452", token=owner)["product"]["id"] == upc["id"]
+    assert call("GET", f"/shops/{sid}/pos/scan?code=00036000291452", token=owner)["product"]["id"] == upc["id"]
+    # SKU works too; unknown code returns no product (the till then offers to assign it)
+    assert call("GET", f"/shops/{sid}/pos/scan?code=mug", token=owner)["product"]["id"] == mug["id"]
+    unk = call("GET", f"/shops/{sid}/pos/scan?code=4006381333931", token=owner)
+    assert unk["product"] is None and unk["valid_gtin"] is True and unk["code"] == "4006381333931", unk
+    call("GET", f"/shops/{sid}/pos/scan?code=%20", token=owner, expect=400)
+    call("GET", f"/shops/{sid}/pos/scan?code=8850000000011", token=stranger, expect=403)
+    # Assign the unknown code to a product at the till, then it scans
+    call("PATCH", f"/products/{upc['id']}", {"barcode": "4006381333931"}, owner)
+    assert call("GET", f"/shops/{sid}/pos/scan?code=4006381333931", token=owner)["product"]["id"] == upc["id"]
+
+    # --- In-store barcode generation (EAN-13, prefix 20, unique, valid check digit) ---
+    def valid(c):
+        s = sum(int(d) * (3 if i % 2 == 0 else 1) for i, d in enumerate(reversed(c[:-1])))
+        return len(c) == 13 and (10 - s % 10) % 10 == int(c[-1])
+    nob = [call("POST", f"/shops/{sid}/products", {"sku": f"NB{i}", "name": f"No barcode {i}", "price_cents": 100, "initial_stock": 1}, owner) for i in range(3)]
+    one = call("POST", f"/shops/{sid}/barcodes/generate", {"product_ids": [nob[0]["id"], mug["id"]]}, owner)["assigned"]
+    assert [a["id"] for a in one] == [nob[0]["id"]], one            # mug already had a barcode → skipped
+    rest = call("POST", f"/shops/{sid}/barcodes/generate", {}, owner)["assigned"]
+    codes = [a["barcode"] for a in one + rest]
+    assert {a["id"] for a in rest} >= {nob[1]["id"], nob[2]["id"]}, rest
+    assert all(c.startswith("20") and valid(c) for c in codes) and len(set(codes)) == len(codes), codes
+    assert call("GET", f"/shops/{sid}/pos/scan?code={codes[0]}", token=owner)["product"]["id"] == nob[0]["id"]
+    assert call("POST", f"/shops/{sid}/barcodes/generate", {}, owner)["assigned"] == []
+    call("POST", f"/shops/{sid}/barcodes/generate", {}, stranger, expect=403)
+    print("  ✔ scan lookup (noise, UPC/EAN equivalence, SKU, unknown), in-store EAN-13 generation")
+
     print("ALL POS TESTS PASSED ✔")
 
 

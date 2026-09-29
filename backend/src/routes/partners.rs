@@ -39,11 +39,11 @@ pub async fn marketplace(
     if let Some(sid) = q.shop_id {
         owned_shop(&st, sid, &user).await?;
     }
-    let rows: Vec<(Uuid, Uuid, String, String, i64, serde_json::Value, String, i32, i32, String, String, Option<String>, Option<i32>, bool)> =
+    let rows: Vec<(Uuid, Uuid, String, String, i64, serde_json::Value, String, i32, i32, String, String, Option<String>, Option<i32>, bool, Option<serde_json::Value>)> =
         sqlx::query_as(
             "SELECT p.id, p.shop_id, p.name, p.description, p.price_cents, p.images, p.category, p.stock,
                     p.commission_bps, s.name, s.slug, pa.status, pa.commission_bps,
-                    EXISTS (SELECT 1 FROM listings l WHERE l.product_id = p.id AND l.reseller_shop_id = $1 AND l.active)
+                    EXISTS (SELECT 1 FROM listings l WHERE l.product_id = p.id AND l.reseller_shop_id = $1 AND l.active), p.cover
              FROM products p
              JOIN shops s ON s.id = p.shop_id
              LEFT JOIN partnerships pa ON pa.supplier_shop_id = p.shop_id AND pa.reseller_shop_id = $1
@@ -77,6 +77,7 @@ pub async fn marketplace(
                     pstatus,
                     pbps,
                     listed,
+                    cover,
                 )| {
                     let effective = pbps.unwrap_or(bps);
                     json!({
@@ -85,7 +86,7 @@ pub async fn marketplace(
                         "commission_bps": bps, "effective_commission_bps": effective,
                         "commission_per_unit_cents": price * effective as i64 / 10_000,
                         "shop_name": shop_name, "shop_slug": shop_slug,
-                        "partnership_status": pstatus, "listed": listed
+                        "partnership_status": pstatus, "listed": listed, "cover": cover
                     })
                 },
             )
@@ -220,10 +221,10 @@ pub async fn listings(
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Vec<Value>>> {
     owned_shop(&st, id, &user).await?;
-    let rows: Vec<(Uuid, Uuid, String, i64, serde_json::Value, i32, String, i32, Option<String>, bool)> = sqlx::query_as(
+    let rows: Vec<(Uuid, Uuid, String, i64, serde_json::Value, i32, String, i32, Option<String>, bool, Option<serde_json::Value>)> = sqlx::query_as(
         "SELECT l.id, p.id, p.name, p.price_cents, p.images, p.stock, s.name,
                 COALESCE(pa.commission_bps, p.commission_bps), pa.status,
-                (l.active AND p.status = 'active' AND p.review_status = 'approved' AND p.allow_resell AND pa.status='approved')
+                (l.active AND p.status = 'active' AND p.review_status = 'approved' AND p.allow_resell AND pa.status='approved'), p.cover
          FROM listings l
          JOIN products p ON p.id = l.product_id
          JOIN shops s ON s.id = p.shop_id
@@ -235,12 +236,12 @@ pub async fn listings(
     .await?;
     Ok(Json(
         rows.into_iter()
-            .map(|(lid, pid, name, price, images, stock, supplier, bps, pstatus, live)| {
+            .map(|(lid, pid, name, price, images, stock, supplier, bps, pstatus, live, cover)| {
                 json!({
                     "id": lid, "product_id": pid, "name": name, "price_cents": price, "images": images,
                     "stock": stock, "supplier_name": supplier, "commission_bps": bps,
                     "commission_per_unit_cents": price * bps as i64 / 10_000,
-                    "partnership_status": pstatus, "live": live
+                    "partnership_status": pstatus, "live": live, "cover": cover
                 })
             })
             .collect(),

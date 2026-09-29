@@ -38,7 +38,7 @@ async function open(ad: ServedAd) {
       <ProductThumb :src="ad.image_url" :name="ad.product_name" class="size-16 shrink-0" rounded="rounded-xl" />
       <div class="min-w-0">
         <div class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted">
-          <span class="rounded bg-ink px-1 text-white">{{ $t('store.ad') }}</span> {{ ad.shop_name }}
+          <span class="rounded bg-ink px-1 text-paper">{{ $t('store.ad') }}</span> {{ ad.shop_name }}
         </div>
         <div class="line-clamp-1 font-semibold group-hover:underline">{{ ad.headline }}</div>
         <div class="line-clamp-1 text-xs text-muted">{{ ad.body || ad.product_name }}</div>

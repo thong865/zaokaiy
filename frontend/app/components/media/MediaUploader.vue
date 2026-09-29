@@ -7,7 +7,8 @@ const props = withDefaults(defineProps<{ shopId: string; productId?: string; com
   hint: undefined,
 })
 const emit = defineEmits<{ uploaded: [assets: MediaAsset[]] }>()
-const { makeJobs, runJobs } = useMedia()
+const { makeJobs, runJobs, checkResolution } = useMedia()
+const { data: cfg } = useMediaConfig()
 const jobs = ref<UploadJob[]>([])
 const over = ref(false)
 const input = ref<HTMLInputElement | null>(null)
@@ -17,6 +18,7 @@ async function add(files: FileList | File[] | null | undefined) {
   if (!files || !files.length) return
   const fresh = reactive(makeJobs(files)) as UploadJob[]
   jobs.value.push(...fresh)
+  await checkResolution(fresh, cfg.value.min_image_edge)
   const assets = await runJobs(props.shopId, fresh, props.productId)
   if (assets.length) emit('uploaded', assets)
   // clear finished rows after a moment, keep errors visible
@@ -50,14 +52,15 @@ defineExpose({ add, busy })
       @dragleave.prevent="over = false"
       @drop.prevent="onDrop"
     >
-      <span class="grid size-10 place-items-center rounded-full bg-white text-lg shadow-sm">⇪</span>
+      <span class="grid size-10 place-items-center rounded-full bg-surface text-lg shadow-sm">⇪</span>
       <i18n-t keypath="media.uploader.drop" tag="span" class="text-sm font-semibold"><template #browse><span class="text-brand-600 underline">{{ $t('media.uploader.browse') }}</span></template></i18n-t>
       <span v-if="!compact" class="text-xs text-muted">{{ hint ?? $t('media.uploader.hint') }}</span>
+      <span v-if="!compact" class="max-w-md text-[11px] text-muted/80">{{ $t('media.quality.hint', { min: cfg.min_image_edge, rec: cfg.recommended_edge }) }}</span>
     </button>
     <input ref="input" type="file" :accept="ACCEPT" multiple class="hidden" @change="add(($event.target as HTMLInputElement).files); ($event.target as HTMLInputElement).value = ''" >
 
     <ul v-if="jobs.length" class="mt-3 space-y-2">
-      <li v-for="j in jobs" :key="j.id" class="flex items-center gap-3 rounded-xl border border-line bg-white p-2 text-sm">
+      <li v-for="j in jobs" :key="j.id" class="flex items-center gap-3 rounded-xl border border-line bg-surface p-2 text-sm">
         <div class="size-10 shrink-0 overflow-hidden rounded-lg bg-line/60">
           <img v-if="j.preview" :src="j.preview" class="size-full object-cover" alt="">
           <div v-else class="grid size-full place-items-center text-xs">▶</div>

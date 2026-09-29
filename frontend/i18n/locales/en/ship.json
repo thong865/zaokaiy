@@ -1,0 +1,127 @@
+{
+  "ship": {
+    "courier": "Courier",
+    "noCourier": "No courier",
+    "chooseCourier": "Choose courier",
+    "tracking": "Tracking no.",
+    "trackingPlaceholder": "Tracking number from the courier",
+    "track": "Track ↗",
+    "printLabel": "Print label",
+    "markShipped": "Mark shipped",
+    "deliveredCod": "Delivered — cash collected",
+    "codBadge": "COD {amount}",
+    "codFee": "COD fee",
+    "shippingFee": "Shipping fee",
+    "shippedOn": "Shipped {date}",
+    "delivery": {
+      "branch": "Branch pickup",
+      "home": "Home delivery"
+    },
+    "pickupBranch": "Pickup branch: {branch}",
+    "payerShort": {
+      "buyer": "Shipping paid at checkout",
+      "destination": "Shipping paid at destination",
+      "seller": "Free shipping"
+    },
+    "codShipHint": "Cash on delivery — you can ship now. The courier collects {amount} from the customer.",
+    "codLedgerLink": "Track the cash on the COD page",
+    "settings": {
+      "title": "Delivery",
+      "intro": "Choose which Lao couriers you work with and what they cost.",
+      "step1": "The customer picks a courier (and branch pickup or home delivery) at checkout.",
+      "step2": "You drop the parcel at the courier and enter the tracking number on the order.",
+      "step3": "For cash on delivery, the courier collects the money and transfers it to you — track it on the COD page.",
+      "codPage": "Open COD page",
+      "noneEnabled": "No courier is enabled yet — customers can't choose a delivery option until you enable at least one.",
+      "enabled": "Enabled",
+      "notConfigured": "Not set up",
+      "website": "Website ↗",
+      "fee": "Shipping fee ({cur})",
+      "feeHint": "Fee for picking up at the courier's branch.",
+      "whoPays": "Who pays for shipping",
+      "payer": {
+        "buyer": "Buyer pays at checkout",
+        "destination": "Buyer pays the courier at pickup (ປາຍທາງ)",
+        "seller": "Free shipping (shop pays)"
+      },
+      "freeOver": "Free shipping over ({cur})",
+      "freeOverHint": "Optional — leave empty for no free-shipping threshold.",
+      "home": "Home delivery",
+      "homeFee": "Home delivery fee ({cur})",
+      "homeOff": "Off — branch pickup only.",
+      "cod": "Cash on delivery (COD)",
+      "codFee": "COD fee ({cur})",
+      "codUnsupported": "This courier doesn't offer cash on delivery.",
+      "eta": "Delivery time",
+      "etaPlaceholder": "e.g. 1–2 days",
+      "note": "Note for customers",
+      "notePlaceholder": "e.g. Parcels leave every day at 3 pm",
+      "save": "Save",
+      "empty": "No couriers are available yet. Please contact the admin."
+    },
+    "cod": {
+      "title": "Cash on delivery",
+      "intro": "Follow the cash couriers collect for you: mark it collected when the customer pays, and remitted when the courier transfers it to you.",
+      "cards": {
+        "pending": "To collect",
+        "collected": "Collected — awaiting transfer",
+        "remitted": "Remitted",
+        "returned": "Returned"
+      },
+      "orders": "{n} order | {n} orders",
+      "byCourier": "Outstanding by courier",
+      "outstanding": "Outstanding",
+      "noOutstanding": "Nothing outstanding — every courier has paid you.",
+      "allCouriers": "All couriers",
+      "cols": {
+        "order": "Order",
+        "customer": "Customer",
+        "courier": "Courier",
+        "tracking": "Tracking no.",
+        "amount": "COD amount",
+        "status": "Status",
+        "shipped": "Shipped"
+      },
+      "selected": "{n} selected",
+      "selectAll": "Select all",
+      "markCollected": "Mark cash collected",
+      "markRemitted": "Mark remitted",
+      "markReturned": "Mark returned",
+      "remitRef": "Courier transfer reference",
+      "remitRefPlaceholder": "e.g. transfer slip no.",
+      "confirmRemit": "Confirm remitted",
+      "confirmReturn": "Mark {n} order as returned? It will be cancelled and the stock put back. | Mark {n} orders as returned? They will be cancelled and the stock put back.",
+      "updated": "Updated {n} order | Updated {n} orders",
+      "empty": "No cash-on-delivery orders here yet.",
+      "remitRefShown": "Ref: {ref}",
+      "openOrder": "Open order",
+      "label": "Label"
+    },
+    "label": {
+      "title": "Shipping label"
+    },
+    "admin": {
+      "title": "Couriers",
+      "intro": "Couriers sellers can offer at checkout. Sellers set their own fees on their Delivery page.",
+      "trackingHint": "Tracking URL is optional — many Lao couriers only offer tracking in their app. In the template, {'{'}tracking{'}'} is replaced by the parcel's tracking number.",
+      "cols": {
+        "code": "Code",
+        "name": "Name",
+        "nameLo": "Lao name",
+        "website": "Website",
+        "trackingUrl": "Tracking URL",
+        "phone": "Phone",
+        "cod": "COD",
+        "active": "Active",
+        "sort": "Sort"
+      },
+      "add": "Add courier",
+      "code": "Code",
+      "codeHint": "Lowercase letters, digits and _ only, e.g. anousith",
+      "codeInvalid": "The code may only contain lowercase letters, digits and _.",
+      "trackingPlaceholder": "https://…?no={'{'}tracking{'}'}",
+      "supportsCod": "Supports COD",
+      "added": "Courier added"
+    }
+  }
+}

@@ -2,7 +2,7 @@
 /** End-of-day (Z) report on receipt paper. ?shop=<id>&date=YYYY-MM-DD&w=80|58 */
 import type { DocKey } from '~/utils/docLabels'
 
-definePageMeta({ layout: 'print', middleware: 'auth' })
+definePageMeta({ colorMode: 'light', layout: 'print', middleware: 'auth' })
 const route = useRoute()
 const api = useApi()
 const width = computed(() => (route.query.w === '58' ? 58 : 80))
@@ -61,7 +61,7 @@ const dloc = computed(() => docLocale(lo.value ? 'lo' : null))
     <div class="rule" />
     <div class="text-center opacity-70">{{ tx('printed', 'Printed') }} {{ fmtDateTime(r.generated_at, 'short', 'medium', dloc) }}</div>
     <div class="mt-6 text-center">{{ tx('signature', 'Signature') }} ______________________</div>
-    <div class="no-print mt-6 flex justify-center pb-4 font-sans"><button class="btn-dark btn-sm" onclick="window.print()">{{ $t('common.print') }}</button></div>
+    <div class="no-print mt-6 flex justify-center pb-4 font-sans"><UButton color="neutral" size="sm" type="submit" onclick="window.print()">{{ $t('common.print') }}</UButton></div>
   </div>
 </template>
 

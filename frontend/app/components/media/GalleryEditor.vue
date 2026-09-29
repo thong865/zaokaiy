@@ -105,12 +105,12 @@ async function saveAlt() {
         @dragover.prevent="dragOver = i"
         @drop.prevent="onDrop(i)"
       >
-        <MediaTile :asset="a" class="aspect-square cursor-grab transition active:cursor-grabbing" :class="dragOver === i && dragFrom !== i && 'ring-2 ring-brand-500'">
-          <span v-if="i === 0" class="absolute left-1.5 top-1.5 rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold text-white">{{ $t('media.cover') }}</span>
+        <MediaTile :asset="a" show-quality sizes="(min-width: 1024px) 160px, 30vw" class="aspect-square cursor-grab transition active:cursor-grabbing" :class="dragOver === i && dragFrom !== i && 'ring-2 ring-brand-500'">
+          <span v-if="i === 0" class="absolute left-1.5 top-1.5 rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold text-paper">{{ $t('media.cover') }}</span>
           <div class="absolute inset-x-1.5 bottom-1.5 flex justify-end gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
-            <button v-if="i > 0" type="button" class="rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-semibold shadow" :title="$t('media.gallery.makeCover')" @click="makeCover(a)">★</button>
-            <button type="button" class="rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-semibold shadow" :title="$t('media.altText')" @click="openAlt(a)">{{ $t('media.gallery.alt') }}</button>
-            <button type="button" class="rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-semibold text-brand-700 shadow" :title="$t('media.gallery.removeFromProduct')" @click="remove(a)">✕</button>
+            <button v-if="i > 0" type="button" class="rounded-full bg-surface/95 px-2 py-0.5 text-[10px] font-semibold shadow" :title="$t('media.gallery.makeCover')" @click="makeCover(a)">★</button>
+            <button type="button" class="rounded-full bg-surface/95 px-2 py-0.5 text-[10px] font-semibold shadow" :title="$t('media.altText')" @click="openAlt(a)">{{ $t('media.gallery.alt') }}</button>
+            <button type="button" class="rounded-full bg-surface/95 px-2 py-0.5 text-[10px] font-semibold text-brand-700 shadow" :title="$t('media.gallery.removeFromProduct')" @click="remove(a)">✕</button>
           </div>
         </MediaTile>
         <!-- keyboard / touch reordering -->
@@ -136,7 +136,7 @@ async function saveAlt() {
     <MediaPicker v-model="picker" :shop-id="shopId" :max="MAX - items.length" :exclude="items.map((i) => i.id)" @select="addAssets" />
 
     <Teleport to="body">
-      <div v-if="editing" class="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-4" @click.self="editing = null">
+      <div v-if="editing" class="fixed inset-0 z-50 grid place-items-center bg-night/40 p-4" @click.self="editing = null">
         <form class="card w-full max-w-md space-y-3 p-5 shadow-2xl" @submit.prevent="saveAlt">
           <div class="flex gap-3">
             <MediaTile :asset="editing" class="size-20 shrink-0" />
@@ -145,10 +145,10 @@ async function saveAlt() {
               <p class="text-xs text-muted">{{ $t('media.gallery.altHelp') }}</p>
             </div>
           </div>
-          <input v-model="altDraft" maxlength="300" class="input" autofocus >
+          <UInput v-model="altDraft" maxlength="300" autofocus />
           <div class="flex justify-end gap-2">
-            <button type="button" class="btn-ghost btn-sm" @click="editing = null">{{ $t('common.cancel') }}</button>
-            <button class="btn-primary btn-sm">{{ $t('common.save') }}</button>
+            <UButton color="neutral" variant="soft" size="sm" type="button" @click="editing = null">{{ $t('common.cancel') }}</UButton>
+            <UButton size="sm" type="submit">{{ $t('common.save') }}</UButton>
           </div>
         </form>
       </div>

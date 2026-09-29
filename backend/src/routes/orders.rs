@@ -13,7 +13,7 @@ use crate::{
     auth::AuthUser,
     error::{AppError, AppResult},
     models::{Order, OrderItem},
-    routes::{catalog::RESELL_OK, commission_of, owned_shop},
+    routes::{catalog::RESELL_OK, commission_of, logistics, owned_shop},
     AppState,
 };
 
@@ -29,6 +29,27 @@ pub struct CheckoutItem {
 pub struct CheckoutReq {
     pub items: Vec<CheckoutItem>,
     pub shipping_address: Value,
+    /// Delivery choice per supplier shop. Required for shops that have couriers set up.
+    #[serde(default)]
+    pub delivery: Vec<DeliveryChoice>,
+}
+
+#[derive(Deserialize)]
+pub struct DeliveryChoice {
+    pub shop_id: Uuid,
+    pub carrier_code: String,
+    /// branch (pick up at the courier's branch) | home
+    #[serde(default = "branch")]
+    pub delivery_type: String,
+    /// prepaid | cod
+    #[serde(default = "prepaid")]
+    pub payment_method: String,
+}
+fn branch() -> String {
+    "branch".into()
+}
+fn prepaid() -> String {
+    "prepaid".into()
 }
 
 #[derive(sqlx::FromRow)]
@@ -122,6 +143,17 @@ pub async fn checkout(
             )));
         }
     }
+    // Vehicles are sold online only when the seller allows it and the vehicle is still available.
+    let offline: Option<String> = sqlx::query_scalar(
+        "SELECT p.name FROM vehicle_specs v JOIN products p ON p.id = v.product_id
+         WHERE v.product_id = ANY($1) AND (NOT v.buy_online OR v.sale_status <> 'available') LIMIT 1",
+    )
+    .bind(&product_ids)
+    .fetch_optional(&mut *tx)
+    .await?;
+    if let Some(name) = offline {
+        return Err(AppError::bad(format!("'{name}' is not available")));
+    }
 
     // Resolve commission rate for each (product, via) line.
     struct Line<'a> {
@@ -171,13 +203,39 @@ pub async fn checkout(
     for (supplier, lines) in grouped {
         let total: i64 = lines.iter().map(|l| l.p.price_cents * l.qty as i64).sum();
         let currency = lines[0].p.currency.clone();
+        let choice = req.delivery.iter().find(|d| d.shop_id == supplier);
+        let q = match choice {
+            Some(d) => {
+                if !matches!(d.payment_method.as_str(), "prepaid" | "cod") {
+                    return Err(AppError::bad("payment method must be prepaid or cod"));
+                }
+                Some(logistics::quote(&mut tx, supplier, &d.carrier_code, &d.delivery_type, d.payment_method == "cod", total).await?)
+            }
+            None if logistics::shop_has_shipping(&mut tx, supplier).await? => {
+                let name: String = sqlx::query_scalar("SELECT name FROM shops WHERE id = $1").bind(supplier).fetch_one(&mut *tx).await?;
+                return Err(AppError::bad(format!("choose a delivery option for {name}")));
+            }
+            None => None,
+        };
+        let cod = q.as_ref().is_some_and(|q| q.cod);
+        let cod_amount = q.as_ref().filter(|q| q.cod).map(|q| total + q.charged_fee_cents + q.cod_fee_cents).unwrap_or(0);
         let order_id: Uuid = sqlx::query_scalar(
-            "INSERT INTO orders (buyer_id, total_cents, currency, shipping_address) VALUES ($1,$2,$3,$4) RETURNING id",
+            "INSERT INTO orders (buyer_id, total_cents, currency, shipping_address, carrier_code, delivery_type, fee_payer,
+                                 shipping_fee_cents, payment_method, cod_fee_cents, cod_amount_cents, cod_status)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id",
         )
         .bind(user.id)
         .bind(total)
         .bind(&currency)
         .bind(&req.shipping_address)
+        .bind(q.as_ref().map(|q| q.carrier_code.clone()))
+        .bind(q.as_ref().map(|q| q.delivery_type.as_str()).unwrap_or("branch"))
+        .bind(q.as_ref().map(|q| q.fee_payer.as_str()).unwrap_or("buyer"))
+        .bind(q.as_ref().map(|q| q.fee_cents).unwrap_or(0))
+        .bind(if cod { "cod" } else { "prepaid" })
+        .bind(q.as_ref().map(|q| q.cod_fee_cents).unwrap_or(0))
+        .bind(cod_amount)
+        .bind(if cod { "pending" } else { "none" })
         .fetch_one(&mut *tx)
         .await?;
 
@@ -288,6 +346,10 @@ pub async fn pay(
     if status != "pending" {
         return Err(AppError::bad(format!("order is {status}")));
     }
+    let method: String = sqlx::query_scalar("SELECT payment_method FROM orders WHERE id=$1").bind(id).fetch_one(&st.db).await?;
+    if method == "cod" {
+        return Err(AppError::bad("this order is paid in cash on delivery"));
+    }
     sqlx::query("UPDATE orders SET status='paid', updated_at=now() WHERE id=$1")
         .bind(id)
         .execute(&st.db)
@@ -300,6 +362,31 @@ pub async fn pay(
 }
 
 async fn do_cancel(tx: &mut Transaction<'_, Postgres>, order_id: Uuid, by: Uuid) -> AppResult<()> {
+    restock_and_cancel(tx, order_id, by, "cancel").await
+}
+
+/// A COD parcel the customer refused came back to the shop: stock returns, order is cancelled.
+pub async fn cancel_returned(tx: &mut Transaction<'_, Postgres>, order_id: Uuid, by: Uuid) -> AppResult<()> {
+    restock_and_cancel(tx, order_id, by, "return").await
+}
+
+/// Delivered (or COD cash collected): complete the order and approve resale commissions.
+pub async fn complete(tx: &mut Transaction<'_, Postgres>, order_id: Uuid) -> AppResult<()> {
+    sqlx::query("UPDATE orders SET status='completed', updated_at=now() WHERE id=$1")
+        .bind(order_id)
+        .execute(&mut **tx)
+        .await?;
+    sqlx::query(
+        "UPDATE commissions SET status='approved', updated_at=now()
+         WHERE status='pending' AND order_item_id IN (SELECT id FROM order_items WHERE order_id=$1)",
+    )
+    .bind(order_id)
+    .execute(&mut **tx)
+    .await?;
+    Ok(())
+}
+
+async fn restock_and_cancel(tx: &mut Transaction<'_, Postgres>, order_id: Uuid, by: Uuid, reason: &str) -> AppResult<()> {
     let items: Vec<(Uuid, i32)> =
         sqlx::query_as("SELECT product_id, qty FROM order_items WHERE order_id=$1")
             .bind(order_id)
@@ -315,13 +402,14 @@ async fn do_cancel(tx: &mut Transaction<'_, Postgres>, order_id: Uuid, by: Uuid)
         .await?;
         sqlx::query(
             "INSERT INTO inventory_movements (product_id, delta, stock_after, reason, ref_order_id, created_by)
-             VALUES ($1,$2,$3,'cancel',$4,$5)",
+             VALUES ($1,$2,$3,$6,$4,$5)",
         )
         .bind(pid)
         .bind(qty)
         .bind(after)
         .bind(order_id)
         .bind(by)
+        .bind(reason)
         .execute(&mut **tx)
         .await?;
     }
@@ -332,10 +420,14 @@ async fn do_cancel(tx: &mut Transaction<'_, Postgres>, order_id: Uuid, by: Uuid)
     .bind(order_id)
     .execute(&mut **tx)
     .await?;
-    sqlx::query("UPDATE orders SET status='cancelled', updated_at=now() WHERE id=$1")
-        .bind(order_id)
-        .execute(&mut **tx)
-        .await?;
+    // A cancelled COD order no longer has cash to collect ('returned' is kept for refused parcels).
+    sqlx::query(
+        "UPDATE orders SET status='cancelled', updated_at=now(),
+            cod_status = CASE WHEN cod_status = 'pending' THEN 'none' ELSE cod_status END WHERE id=$1",
+    )
+    .bind(order_id)
+    .execute(&mut **tx)
+    .await?;
     Ok(())
 }
 
@@ -398,6 +490,9 @@ pub async fn shop_sales(
 #[derive(Deserialize)]
 pub struct StatusReq {
     pub status: String,
+    /// When shipping: courier (defaults to the one the buyer chose) and tracking number.
+    pub carrier_code: Option<String>,
+    pub tracking_no: Option<String>,
 }
 
 /// Supplier moves the order through fulfilment: paid → shipped → completed, or cancels.
@@ -412,10 +507,13 @@ pub async fn set_status(
     if supplier != shop_id {
         return Err(AppError::Forbidden);
     }
+    let (method, cod_status): (String, String) =
+        sqlx::query_as("SELECT payment_method, cod_status FROM orders WHERE id=$1").bind(order_id).fetch_one(&st.db).await?;
+    let cod = method == "cod";
     let allowed = matches!(
         (current.as_str(), req.status.as_str()),
         ("paid", "shipped") | ("shipped", "completed") | ("pending" | "paid", "cancelled")
-    );
+    ) || (cod && current == "pending" && req.status == "shipped");
     if !allowed {
         return Err(AppError::bad(format!(
             "cannot move order from {current} to {}",
@@ -425,20 +523,31 @@ pub async fn set_status(
     let mut tx = st.db.begin().await?;
     if req.status == "cancelled" {
         do_cancel(&mut tx, order_id, user.id).await?;
+    } else if req.status == "shipped" {
+        let carrier = req.carrier_code.as_deref().map(str::trim).filter(|c| !c.is_empty());
+        if let Some(c) = carrier {
+            let ok: bool = sqlx::query_scalar("SELECT EXISTS (SELECT 1 FROM carriers WHERE code = $1)").bind(c).fetch_one(&mut *tx).await?;
+            if !ok {
+                return Err(AppError::bad("unknown courier"));
+            }
+        }
+        sqlx::query(
+            "UPDATE orders SET status='shipped', shipped_at=now(), updated_at=now(),
+                carrier_code = COALESCE($2, carrier_code), tracking_no = COALESCE($3, tracking_no) WHERE id=$1",
+        )
+        .bind(order_id)
+        .bind(carrier)
+        .bind(req.tracking_no.map(|t| t.trim().chars().take(60).collect::<String>()))
+        .execute(&mut *tx)
+        .await?;
     } else {
-        sqlx::query("UPDATE orders SET status=$2, updated_at=now() WHERE id=$1")
-            .bind(order_id)
-            .bind(&req.status)
-            .execute(&mut *tx)
-            .await?;
-        if req.status == "completed" {
-            sqlx::query(
-                "UPDATE commissions SET status='approved', updated_at=now()
-                 WHERE status='pending' AND order_item_id IN (SELECT id FROM order_items WHERE order_id=$1)",
-            )
-            .bind(order_id)
-            .execute(&mut *tx)
-            .await?;
+        // completed: delivered. For COD this means the courier collected the cash.
+        complete(&mut tx, order_id).await?;
+        if cod && cod_status == "pending" {
+            sqlx::query("UPDATE orders SET cod_status='collected', cod_collected_at=now() WHERE id=$1")
+                .bind(order_id)
+                .execute(&mut *tx)
+                .await?;
         }
     }
     tx.commit().await?;

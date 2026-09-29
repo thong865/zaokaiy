@@ -21,6 +21,8 @@ pub struct CreateShop {
     pub logo_url: Option<String>,
     pub currency: Option<String>,
     pub kind: Option<String>,
+    pub vertical: Option<String>,
+    pub entity_type: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -30,6 +32,8 @@ pub struct UpdateShop {
     pub description: Option<String>,
     pub logo_url: Option<String>,
     pub kind: Option<String>,
+    pub vertical: Option<String>,
+    pub entity_type: Option<String>,
     // Business / tax details for receipts & invoices
     pub legal_name: Option<String>,
     pub tax_id: Option<String>,
@@ -56,6 +60,20 @@ fn valid_slug(s: &str) -> bool {
 
 fn valid_kind(k: &str) -> bool {
     matches!(k, "seller" | "creator")
+}
+
+fn check_entity(v: &Option<String>) -> AppResult<()> {
+    match v.as_deref() {
+        None | Some("individual" | "business") => Ok(()),
+        _ => Err(AppError::bad("shop type must be individual or business")),
+    }
+}
+
+fn check_vertical(v: &Option<String>) -> AppResult<()> {
+    match v.as_deref() {
+        None | Some("general" | "vehicle") => Ok(()),
+        _ => Err(AppError::bad("store type must be general or vehicle")),
+    }
 }
 
 pub async fn my_shops(State(st): State<AppState>, user: AuthUser) -> AppResult<Json<Vec<Shop>>> {
@@ -86,9 +104,11 @@ pub async fn create_shop(
     if !valid_kind(&kind) {
         return Err(AppError::bad("kind must be seller or creator"));
     }
+    check_vertical(&req.vertical)?;
+    check_entity(&req.entity_type)?;
     let shop: Shop = sqlx::query_as(
-        "INSERT INTO shops (owner_id, slug, name, description, logo_url, currency, kind)
-         VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *",
+        "INSERT INTO shops (owner_id, slug, name, description, logo_url, currency, kind, vertical, entity_type)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *",
     )
     .bind(user.id)
     .bind(&slug)
@@ -97,6 +117,8 @@ pub async fn create_shop(
     .bind(req.logo_url)
     .bind(currency)
     .bind(kind)
+    .bind(req.vertical.unwrap_or_else(|| "general".into()))
+    .bind(req.entity_type.unwrap_or_else(|| "individual".into()))
     .fetch_one(&st.db)
     .await
     .map_err(|e| match AppError::from(e) {
@@ -112,7 +134,16 @@ pub async fn update_shop(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateShop>,
 ) -> AppResult<Json<Shop>> {
-    owned_shop(&st, id, &user).await?;
+    let current = owned_shop(&st, id, &user).await?;
+    check_entity(&req.entity_type)?;
+    // A business under review or verified can't slip out of verification by becoming "individual".
+    if req.entity_type.as_deref() == Some("individual")
+        && current.entity_type == "business"
+        && (current.kyb_status == "submitted" || current.kyb_verified_at.is_some())
+        && !user.is_admin()
+    {
+        return Err(AppError::bad("a verified or in-review business shop can't be changed to individual"));
+    }
     if matches!(req.vat_bps, Some(v) if !(0..=3000).contains(&v)) {
         return Err(AppError::bad("vat_bps must be between 0 and 3000 (0-30%)"));
     }
@@ -128,6 +159,7 @@ pub async fn update_shop(
             return Err(AppError::bad("kind must be seller or creator"));
         }
     }
+    check_vertical(&req.vertical)?;
     let shop: Shop = sqlx::query_as(
         "UPDATE shops SET
             name = COALESCE($2, name),
@@ -144,7 +176,9 @@ pub async fn update_shop(
             receipt_prefix = COALESCE($13, receipt_prefix),
             invoice_prefix = COALESCE($14, invoice_prefix),
             receipt_footer = COALESCE($15, receipt_footer),
-            currency = COALESCE($16, currency)
+            currency = COALESCE($16, currency),
+            vertical = COALESCE($17, vertical),
+            entity_type = COALESCE($18, entity_type)
          WHERE id = $1 RETURNING *",
     )
     .bind(id)
@@ -163,6 +197,8 @@ pub async fn update_shop(
     .bind(req.invoice_prefix.map(|s| s.trim().to_uppercase()))
     .bind(req.receipt_footer)
     .bind(currency)
+    .bind(req.vertical)
+    .bind(req.entity_type)
     .fetch_one(&st.db)
     .await?;
     Ok(Json(shop))

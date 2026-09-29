@@ -3,7 +3,7 @@ import type { PosDoc } from '~/utils/types'
 import type { DocKey } from '~/utils/docLabels'
 
 /** Thermal receipt (80 mm or 58 mm). Doubles as an abbreviated tax invoice when the shop has a tax ID. */
-definePageMeta({ layout: 'print', middleware: 'auth' })
+definePageMeta({ colorMode: 'light', layout: 'print', middleware: 'auth' })
 const route = useRoute()
 const api = useApi()
 const width = computed(() => (route.query.w === '58' ? 58 : 80))
@@ -83,8 +83,8 @@ const when = computed(() => fmtDateTime(s.value.created_at, 'short', 'short', do
     <div class="mt-1 text-center text-[0.85em] opacity-70">{{ s.number }} · {{ tx('vatIncluded', 'VAT included') }} · zaokaiy POS</div>
 
     <div class="no-print mt-6 flex justify-center gap-2 pb-4 font-sans">
-      <button class="btn-dark btn-sm" onclick="window.print()">{{ $t('common.print') }}</button>
-      <NuxtLink :to="{ query: { w: width === 80 ? '58' : '80' } }" class="btn-ghost btn-sm">{{ width === 80 ? '58 mm' : '80 mm' }}</NuxtLink>
+      <UButton color="neutral" size="sm" type="submit" onclick="window.print()">{{ $t('common.print') }}</UButton>
+      <UButton color="neutral" variant="soft" size="sm" :to="{ query: { w: width === 80 ? '58' : '80' } }">{{ width === 80 ? '58 mm' : '80 mm' }}</UButton>
     </div>
   </div>
 </template>

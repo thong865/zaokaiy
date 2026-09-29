@@ -82,6 +82,9 @@ pub async fn apply(
     if publishing && p.category_id.is_none() {
         return Err(AppError::bad("choose a marketplace category before publishing"));
     }
+    if publishing && st.cfg.kyb_required_to_publish && shop.entity_type == "business" && shop.kyb_verified_at.is_none() {
+        return Err(AppError::bad("verify your business before publishing products"));
+    }
     let p: Product = sqlx::query_as(
         "UPDATE products SET review_status = $2,
             submitted_at = CASE WHEN $2 = 'pending' THEN now() ELSE submitted_at END,
@@ -160,6 +163,9 @@ pub async fn overview(State(st): State<AppState>, _a: AdminUser) -> AppResult<Js
     )
     .fetch_one(&st.db)
     .await?;
+    let kyb_pending: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM shops WHERE kyb_status = 'submitted'")
+        .fetch_one(&st.db)
+        .await?;
     let oldest: Option<DateTime<Utc>> =
         sqlx::query_scalar("SELECT MIN(submitted_at) FROM products WHERE review_status='pending'")
             .fetch_one(&st.db)
@@ -167,7 +173,8 @@ pub async fn overview(State(st): State<AppState>, _a: AdminUser) -> AppResult<Js
     Ok(Json(json!({
         "pending": pending, "rejected": rejected, "approved": approved, "live": live,
         "shops": shops, "users": users, "categories": categories, "oldest_pending_at": oldest,
-        "review_required": st.cfg.review_required, "review_on_edit": st.cfg.review_on_edit
+        "review_required": st.cfg.review_required, "review_on_edit": st.cfg.review_on_edit,
+        "kyb_pending": kyb_pending
     })))
 }
 
@@ -224,7 +231,7 @@ pub async fn detail(State(st): State<AppState>, _a: AdminUser, Path(id): Path<Uu
         .ok_or(AppError::NotFound)?;
     let shop: Shop = sqlx::query_as("SELECT * FROM shops WHERE id = $1").bind(p.shop_id).fetch_one(&st.db).await?;
     let (owner_email, owner_name): (String, String) =
-        sqlx::query_as("SELECT email, display_name FROM users WHERE id = $1")
+        sqlx::query_as("SELECT COALESCE(email, phone, ''), display_name FROM users WHERE id = $1")
             .bind(shop.owner_id)
             .fetch_one(&st.db)
             .await?;
@@ -336,13 +343,13 @@ pub struct ShopsQ {
 pub async fn shops(State(st): State<AppState>, _a: AdminUser, Query(q): Query<ShopsQ>) -> AppResult<Json<Vec<Value>>> {
     type Row = (Uuid, String, String, String, bool, DateTime<Utc>, String, i64, i64, i64);
     let rows: Vec<Row> = sqlx::query_as(
-        "SELECT s.id, s.name, s.slug, s.kind, s.auto_approve, s.created_at, u.email,
+        "SELECT s.id, s.name, s.slug, s.kind, s.auto_approve, s.created_at, COALESCE(u.email, u.phone, '') AS email,
                 COUNT(p.id), COUNT(p.id) FILTER (WHERE p.review_status='pending'),
                 COUNT(p.id) FILTER (WHERE p.review_status='rejected')
          FROM shops s JOIN users u ON u.id = s.owner_id
          LEFT JOIN products p ON p.shop_id = s.id
-         WHERE ($1::text IS NULL OR s.name ILIKE '%'||$1||'%' OR u.email ILIKE '%'||$1||'%')
-         GROUP BY s.id, u.email ORDER BY s.created_at DESC LIMIT 200",
+         WHERE ($1::text IS NULL OR s.name ILIKE '%'||$1||'%' OR u.email ILIKE '%'||$1||'%' OR u.phone ILIKE '%'||$1||'%')
+         GROUP BY s.id, u.email, u.phone ORDER BY s.created_at DESC LIMIT 200",
     )
     .bind(q.q.filter(|s| !s.trim().is_empty()))
     .fetch_all(&st.db)

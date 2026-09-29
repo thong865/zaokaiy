@@ -72,7 +72,7 @@ const expanded = ref<string | null>(null)
     <h1 class="page-title">{{ $t('grow.content.title') }}</h1>
     <p class="text-sm text-muted">{{ $t('grow.content.intro') }}</p>
     <div v-if="aiStatus && !aiStatus.enabled" class="mt-4 rounded-2xl bg-sun-400/20 px-4 py-3 text-sm">
-      <i18n-t keypath="grow.content.offline" tag="span"><template #key><code class="rounded bg-white px-1">ANTHROPIC_API_KEY</code></template><template #env><code class="rounded bg-white px-1">.env</code></template></i18n-t>
+      <i18n-t keypath="grow.content.offline" tag="span"><template #key><code class="rounded bg-surface px-1">ANTHROPIC_API_KEY</code></template><template #env><code class="rounded bg-surface px-1">.env</code></template></i18n-t>
     </div>
 
     <div class="mt-6 grid gap-6 lg:grid-cols-[340px_1fr]">
@@ -88,16 +88,16 @@ const expanded = ref<string | null>(null)
         <div>
           <label class="label">{{ $t('grow.content.format') }}</label>
           <div class="flex flex-wrap gap-1.5">
-            <button v-for="k in kinds" :key="k[0]" type="button" class="chip border px-3 py-1" :class="g.kind === k[0] ? 'border-ink bg-ink text-white' : 'border-line bg-white'" @click="g.kind = k[0]">{{ k[1] }}</button>
+            <button v-for="k in kinds" :key="k[0]" type="button" class="chip border px-3 py-1" :class="g.kind === k[0] ? 'border-brand-500 bg-brand-500 text-white shadow-[0_6px_16px_-8px_var(--brand-500)]' : 'border-transparent bg-surface shadow-card hover:text-brand-500'" @click="g.kind = k[0]">{{ k[1] }}</button>
           </div>
         </div>
-        <div><label class="label">{{ $t('grow.content.tone') }}</label><input v-model="g.tone" class="input" ></div>
+        <div><label class="label">{{ $t('grow.content.tone') }}</label><UInput v-model="g.tone" /></div>
         <div>
           <label class="label">{{ $t('common.language') }}</label>
           <select v-model="g.language" class="input"><option v-for="l in languages" :key="l[0]" :value="l[0]">{{ l[1] }}</option></select>
         </div>
-        <div><label class="label">{{ $t('grow.content.extra') }}</label><textarea v-model="g.extra" rows="2" class="input" :placeholder="$t('grow.content.extraPlaceholder')" /></div>
-        <button class="btn-primary w-full" :disabled="busy" @click="generate">{{ busy ? $t('grow.content.generating') : $t('grow.content.generate') }}</button>
+        <div><label class="label">{{ $t('grow.content.extra') }}</label><UTextarea v-model="g.extra" :rows="2" :placeholder="$t('grow.content.extraPlaceholder')" /></div>
+        <UButton type="submit" class="w-full" :disabled="busy" @click="generate">{{ busy ? $t('grow.content.generating') : $t('grow.content.generate') }}</UButton>
       </div>
 
       <div class="space-y-6">
@@ -106,13 +106,13 @@ const expanded = ref<string | null>(null)
             <div class="font-bold">{{ $t('grow.content.editor') }}</div>
             <span v-if="draft.ai" class="chip bg-brand-50 text-brand-700">{{ $t('grow.content.aiGenerated') }}</span>
           </div>
-          <input v-model="draft.title" :placeholder="$t('grow.content.titlePlaceholder')" class="input font-semibold" >
-          <textarea v-model="draft.body" rows="10" :placeholder="$t('grow.content.bodyPlaceholder')" class="input" />
+          <UInput v-model="draft.title" :placeholder="$t('grow.content.titlePlaceholder')" class="font-semibold" />
+          <UTextarea v-model="draft.body" :rows="10" :placeholder="$t('grow.content.bodyPlaceholder')" />
           <MediaField v-model="draft.media_url" :shop-id="shopId" :label="$t('grow.content.cover')" />
           <p v-if="error" class="text-sm text-brand-700">{{ error }}</p>
           <div class="flex justify-end gap-2">
-            <button class="btn-ghost" :disabled="!draft.title || !draft.body" @click="save('draft')">{{ $t('grow.content.saveDraft') }}</button>
-            <button class="btn-primary" :disabled="!draft.title || !draft.body" @click="save('published')">{{ $t('grow.content.publish') }}</button>
+            <UButton color="neutral" variant="soft" type="submit" :disabled="!draft.title || !draft.body" @click="save('draft')">{{ $t('grow.content.saveDraft') }}</UButton>
+            <UButton type="submit" :disabled="!draft.title || !draft.body" @click="save('published')">{{ $t('grow.content.publish') }}</UButton>
           </div>
         </div>
 
@@ -126,8 +126,8 @@ const expanded = ref<string | null>(null)
                 <span v-if="c.ai_generated" class="chip bg-brand-50 text-brand-700">AI</span>
                 <span class="text-xs text-muted">{{ ago(c.created_at) }}</span>
                 <div class="ml-auto flex gap-2">
-                  <button class="btn-ghost btn-sm" @click="toggle(c)">{{ c.status === 'published' ? $t('grow.content.unpublish') : $t('grow.content.publish') }}</button>
-                  <button class="btn-ghost btn-sm" @click="remove(c)">{{ $t('common.delete') }}</button>
+                  <UButton color="neutral" variant="soft" size="sm" type="submit" @click="toggle(c)">{{ c.status === 'published' ? $t('grow.content.unpublish') : $t('grow.content.publish') }}</UButton>
+                  <UButton color="neutral" variant="soft" size="sm" type="submit" @click="remove(c)">{{ $t('common.delete') }}</UButton>
                 </div>
               </div>
               <div class="mt-2 cursor-pointer font-semibold" @click="expanded = expanded === c.id ? null : c.id">{{ c.title }}</div>

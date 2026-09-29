@@ -1,9 +1,10 @@
-use axum::{extract::State, Json};
+use axum::{extract::State, http::HeaderMap, Json};
 use serde::Deserialize;
 use serde_json::{json, Value};
 
 use crate::{
     auth::{hash_password, issue_token, verify_password, AuthUser},
+    captcha,
     error::{AppError, AppResult},
     models::User,
     AppState,
@@ -14,16 +15,21 @@ pub struct RegisterReq {
     pub email: String,
     pub password: String,
     pub display_name: String,
+    /// Cloudflare Turnstile token.
+    pub captcha: Option<String>,
 }
 
 #[derive(Deserialize)]
 pub struct LoginReq {
     pub email: String,
     pub password: String,
+    /// Cloudflare Turnstile token.
+    pub captcha: Option<String>,
 }
 
 pub async fn register(
     State(st): State<AppState>,
+    headers: HeaderMap,
     Json(req): Json<RegisterReq>,
 ) -> AppResult<Json<Value>> {
     let email = req.email.trim().to_lowercase();
@@ -37,6 +43,7 @@ pub async fn register(
     if name.is_empty() {
         return Err(AppError::bad("display_name is required"));
     }
+    captcha::verify(&st, &headers, req.captcha.as_deref()).await?;
     let hash = hash_password(&req.password)?;
     let user: User = sqlx::query_as(
         "INSERT INTO users (email, password_hash, display_name, role) VALUES ($1,$2,$3,$4) RETURNING *",
@@ -57,17 +64,24 @@ pub async fn register(
 
 pub async fn login(
     State(st): State<AppState>,
+    headers: HeaderMap,
     Json(req): Json<LoginReq>,
 ) -> AppResult<Json<Value>> {
-    let user: Option<User> = sqlx::query_as("SELECT * FROM users WHERE email = $1")
-        .bind(req.email.trim().to_lowercase())
-        .fetch_optional(&st.db)
-        .await?;
+    captcha::verify(&st, &headers, req.captcha.as_deref()).await?;
+    // The login field accepts an email or a phone number in international format (+856…).
+    let id = req.email.trim().to_lowercase();
+    let user: Option<User> = if id.contains('@') {
+        sqlx::query_as("SELECT * FROM users WHERE lower(email) = $1").bind(&id).fetch_optional(&st.db).await?
+    } else if let Some(phone) = super::oauth::normalize_phone(&id) {
+        sqlx::query_as("SELECT * FROM users WHERE phone = $1").bind(phone).fetch_optional(&st.db).await?
+    } else {
+        None
+    };
     let user = user
-        .filter(|u| verify_password(&req.password, &u.password_hash))
+        .filter(|u| u.password_hash.as_deref().is_some_and(|h| verify_password(&req.password, h)))
         .ok_or_else(|| AppError::bad("invalid email or password"))?;
-    let token = issue_token(&st, user.id, &user.role)?;
-    Ok(Json(json!({ "token": token, "user": user })))
+    // Session, or a 2FA challenge when the account has it on.
+    super::two_factor::sign_in(&st, user, false, None, None).await
 }
 
 pub async fn me(State(st): State<AppState>, user: AuthUser) -> AppResult<Json<User>> {

@@ -14,6 +14,23 @@ export interface UploadJob {
   asset?: MediaAsset
 }
 
+export interface MediaConfig {
+  max_image_mb: number
+  max_video_mb: number
+  /** Minimum px on the shortest side (the API rejects smaller images). */
+  min_image_edge: number
+  recommended_edge: number
+  variant_widths: number[]
+}
+
+/** Upload limits and image guidance from the API. */
+export function useMediaConfig() {
+  const api = useApi()
+  return useAsyncData('media-config', () => api<MediaConfig>('/media/config'), {
+    default: (): MediaConfig => ({ max_image_mb: IMAGE_MB, max_video_mb: VIDEO_MB, min_image_edge: 500, recommended_edge: 1200, variant_widths: [] }),
+  })
+}
+
 /** Media library API helpers. Uploads use XHR so we can show per-file progress. */
 export function useMedia() {
   const config = useRuntimeConfig()
@@ -99,5 +116,27 @@ export function useMedia() {
   const addUrl = (shopId: string, url: string, alt = '') =>
     api<MediaAsset>(`/shops/${shopId}/media/url`, { method: 'POST', body: { url, alt } })
 
-  return { makeJobs, runJobs, setGallery, addUrl, validate }
+  /** Reject images below the minimum resolution before uploading (instant feedback, no wasted upload). */
+  async function checkResolution(jobs: UploadJob[], minEdge: number) {
+    if (!minEdge || typeof createImageBitmap !== 'function') return
+    await Promise.all(
+      jobs
+        .filter((j) => j.status === 'queued' && j.file.type.startsWith('image/'))
+        .map(async (j) => {
+          try {
+            const bmp = await createImageBitmap(j.file)
+            const { width, height } = bmp
+            bmp.close()
+            if (Math.min(width, height) < minEdge) {
+              j.status = 'error'
+              j.error = tr('media.quality.tooSmall', { w: width, h: height, min: minEdge })
+            }
+          } catch {
+            // Undecodable here (e.g. HEIC); let the server decide.
+          }
+        }),
+    )
+  }
+
+  return { makeJobs, runJobs, setGallery, addUrl, validate, checkResolution }
 }

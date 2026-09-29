@@ -59,7 +59,7 @@ async function setStatus(a: AdCampaign, status: string) {
         <h1 class="page-title">{{ $t('grow.ads.title') }}</h1>
         <p class="text-sm text-muted">{{ $t('grow.ads.intro') }}</p>
       </div>
-      <button class="btn-primary" @click="show = true">+ {{ $t('grow.ads.newCampaign') }}</button>
+      <UButton type="submit" @click="show = true">+ {{ $t('grow.ads.newCampaign') }}</UButton>
     </div>
     <p v-if="error && !show" class="mt-3 text-sm text-brand-700">{{ error }}</p>
 
@@ -78,8 +78,8 @@ async function setStatus(a: AdCampaign, status: string) {
             <td>{{ a.impressions ? ((a.clicks / a.impressions) * 100).toFixed(1) + '%' : '—' }}</td>
             <td><StatusBadge :status="a.status" /></td>
             <td class="whitespace-nowrap text-right">
-              <button v-if="a.status === 'active'" class="btn-ghost btn-sm" @click="setStatus(a, 'paused')">{{ $t('grow.ads.pause') }}</button>
-              <button v-else-if="a.status !== 'ended'" class="btn-primary btn-sm" @click="setStatus(a, 'active')">{{ $t('grow.ads.activate') }}</button>
+              <UButton color="neutral" variant="soft" size="sm" type="submit" v-if="a.status === 'active'" @click="setStatus(a, 'paused')">{{ $t('grow.ads.pause') }}</UButton>
+              <UButton size="sm" type="submit" v-else-if="a.status !== 'ended'" @click="setStatus(a, 'active')">{{ $t('grow.ads.activate') }}</UButton>
             </td>
           </tr>
         </tbody>
@@ -87,7 +87,7 @@ async function setStatus(a: AdCampaign, status: string) {
     </div>
     <EmptyState v-else class="mt-6" :title="$t('grow.ads.emptyTitle')" :text="$t('grow.ads.emptyText')" />
 
-    <div v-if="show" class="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-4" @click.self="show = false">
+    <div v-if="show" class="fixed inset-0 z-50 grid place-items-center bg-night/40 p-4" @click.self="show = false">
       <form class="card w-full max-w-lg space-y-4 p-6 shadow-2xl" @submit.prevent="create">
         <div class="text-lg font-bold">{{ $t('grow.ads.newCampaign') }}</div>
         <div>
@@ -99,18 +99,18 @@ async function setStatus(a: AdCampaign, status: string) {
         </div>
         <div>
           <div class="flex items-center justify-between"><label class="label">{{ $t('grow.ads.headline') }}</label><button type="button" class="mb-1.5 text-xs font-semibold text-brand-600" :disabled="aiBusy" @click="aiCopy">{{ aiBusy ? $t('grow.ads.writing') : '✦ ' + $t('grow.ads.writeWithAi') }}</button></div>
-          <input v-model="f.headline" required maxlength="80" class="input" >
+          <UInput v-model="f.headline" required maxlength="80" />
         </div>
-        <div><label class="label">{{ $t('grow.ads.body') }}</label><textarea v-model="f.body" rows="2" maxlength="200" class="input" /></div>
+        <div><label class="label">{{ $t('grow.ads.body') }}</label><UTextarea v-model="f.body" :rows="2" maxlength="200" /></div>
         <MediaField v-model="f.image_url" :shop-id="shopId" kind="image" :label="$t('grow.ads.image')" />
         <div class="grid grid-cols-3 gap-3">
-          <div><label class="label">{{ $t('grow.ads.budget') }}</label><input v-model.number="f.budget" type="number" min="1" step="1" class="input" ></div>
-          <div><label class="label">{{ $t('grow.ads.perClick') }}</label><input v-model.number="f.cpc" type="number" min="0.01" step="0.01" class="input" ></div>
+          <div><label class="label">{{ $t('grow.ads.budget') }}</label><UInput v-model.number="f.budget" type="number" min="1" step="1" /></div>
+          <div><label class="label">{{ $t('grow.ads.perClick') }}</label><UInput v-model.number="f.cpc" type="number" min="0.01" step="0.01" /></div>
           <div><label class="label">{{ $t('grow.ads.startAs') }}</label><select v-model="f.status" class="input"><option value="active">{{ $t('common.status.active') }}</option><option value="draft">{{ $t('common.status.draft') }}</option></select></div>
         </div>
         <p class="text-xs text-muted">≈ {{ $t('grow.ads.estimate', { n: num(Math.floor(f.budget / (f.cpc || 1))), price: money(f.budget * 100, cur) }) }}</p>
         <p v-if="error" class="text-sm text-brand-700">{{ error }}</p>
-        <div class="flex justify-end gap-2"><button type="button" class="btn-ghost" @click="show = false">{{ $t('common.cancel') }}</button><button class="btn-primary">{{ $t('common.create') }}</button></div>
+        <div class="flex justify-end gap-2"><UButton color="neutral" variant="soft" type="button" @click="show = false">{{ $t('common.cancel') }}</UButton><UButton type="submit">{{ $t('common.create') }}</UButton></div>
       </form>
     </div>
   </div>

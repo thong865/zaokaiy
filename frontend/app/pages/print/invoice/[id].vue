@@ -2,7 +2,7 @@
 import type { PosDoc } from '~/utils/types'
 
 /** Full tax invoice (A4) for a POS sale. ?copy=1 prints the "COPY" version. */
-definePageMeta({ layout: 'print', middleware: 'auth' })
+definePageMeta({ colorMode: 'light', layout: 'print', middleware: 'auth' })
 const route = useRoute()
 const api = useApi()
 const { data: doc } = await useAsyncData(`invoice:${route.params.id}`, () => api<PosDoc>(`/pos/sales/${route.params.id}`))
@@ -19,8 +19,8 @@ useHead({
 <template>
   <div v-if="doc">
     <div class="no-print mx-auto mb-4 flex w-[210mm] items-center gap-2 font-sans">
-      <button class="btn-dark btn-sm" onclick="window.print()">{{ $t('pos.print.printPdf') }}</button>
-      <NuxtLink :to="{ query: { copy: copy ? undefined : '1' } }" class="btn-ghost btn-sm">{{ copy ? $t('pos.print.showOriginal') : $t('pos.print.showCopy') }}</NuxtLink>
+      <UButton color="neutral" size="sm" type="submit" onclick="window.print()">{{ $t('pos.print.printPdf') }}</UButton>
+      <UButton color="neutral" variant="soft" size="sm" :to="{ query: { copy: copy ? undefined : '1' } }">{{ copy ? $t('pos.print.showOriginal') : $t('pos.print.showCopy') }}</UButton>
       <span v-if="!doc.sale.invoice_number" class="text-sm text-brand-700">{{ $t('pos.print.noInvoice') }}</span>
     </div>
     <InvoiceDocument

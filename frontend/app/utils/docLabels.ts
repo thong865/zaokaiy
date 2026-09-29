@@ -74,6 +74,10 @@ export const DOC_LABELS = {
   awaitingPayment: { en: 'Awaiting payment.', lo: 'ລໍຖ້າການຊຳລະເງິນ' },
   customerNote: { en: 'Customer note', lo: 'ໝາຍເຫດຈາກລູກຄ້າ' },
   tracking: { en: 'Tracking', lo: 'ເລກພັດສະດຸ' },
+  courier: { en: 'Courier', lo: 'ຂົນສົ່ງ' },
+  codFee: { en: 'COD fee', lo: 'ຄ່າທຳນຽມເກັບເງິນປາຍທາງ' },
+  cod: { en: 'Cash on delivery', lo: 'ເກັບເງິນປາຍທາງ' },
+  shippingAtDestination: { en: 'Shipping fee paid by receiver', lo: 'ປາຍທາງຈ່າຍຄ່າສົ່ງ' },
   thankYou: { en: 'Thank you', lo: 'ຂອບໃຈທີ່ອຸດໜູນ', th: 'ขอบคุณ' },
   printed: { en: 'Printed', lo: 'ພິມເມື່ອ' },
 

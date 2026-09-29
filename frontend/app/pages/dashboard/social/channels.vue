@@ -93,8 +93,8 @@ curl -X POST ${apiBase.value}/webhooks/ingest/${c.id} \\
 
     <div v-if="settings && (!settings.meta_webhook_configured || !settings.meta_signature_check)" class="mb-5 rounded-2xl border border-sun-400/60 bg-sun-400/10 px-4 py-3 text-sm">
       <b>{{ $t('social.channels.serverSetup') }}</b>
-      <span v-if="!settings.meta_webhook_configured"> <i18n-t keypath="social.channels.needVerifyToken" tag="span"><template #env><code class="rounded bg-white px-1">META_VERIFY_TOKEN</code></template></i18n-t></span>
-      <span v-if="!settings.meta_signature_check"> <i18n-t keypath="social.channels.needAppSecret" tag="span"><template #env><code class="rounded bg-white px-1">META_APP_SECRET</code></template></i18n-t></span>
+      <span v-if="!settings.meta_webhook_configured"> <i18n-t keypath="social.channels.needVerifyToken" tag="span"><template #env><code class="rounded bg-surface px-1">META_VERIFY_TOKEN</code></template></i18n-t></span>
+      <span v-if="!settings.meta_signature_check"> <i18n-t keypath="social.channels.needAppSecret" tag="span"><template #env><code class="rounded bg-surface px-1">META_APP_SECRET</code></template></i18n-t></span>
       <span> {{ $t('social.channels.needHttps') }}</span>
     </div>
     <p v-if="error" class="mb-3 text-sm text-brand-700">{{ error }}</p>
@@ -110,33 +110,33 @@ curl -X POST ${apiBase.value}/webhooks/ingest/${c.id} \\
           <div class="ml-auto flex flex-wrap items-center gap-3 text-sm">
             <label v-if="c.provider !== 'tiktok' && c.provider !== 'webhook'" class="flex items-center gap-1.5"><input type="checkbox" class="accent-brand-500" :checked="c.auto_reply" @change="patch(c, { auto_reply: ($event.target as HTMLInputElement).checked })"> {{ $t('social.channels.autoReply') }}</label>
             <label class="flex items-center gap-1.5"><input type="checkbox" class="accent-brand-500" :checked="c.active" @change="patch(c, { active: ($event.target as HTMLInputElement).checked })"> {{ $t('social.channels.active') }}</label>
-            <button class="btn-ghost btn-sm text-brand-700" @click="remove(c)">{{ $t('social.channels.disconnect') }}</button>
+            <UButton color="neutral" variant="soft" size="sm" type="submit" class="text-brand-700" @click="remove(c)">{{ $t('social.channels.disconnect') }}</UButton>
           </div>
         </div>
         <div class="mt-4 grid gap-3 text-sm md:grid-cols-2">
           <div v-if="c.provider === 'facebook' || c.provider === 'whatsapp'">
             <label class="label">{{ $t('social.channels.accessToken') }}</label>
             <div class="flex gap-2">
-              <input v-model="tokenEdit[c.id]" type="password" class="input py-2" :placeholder="c.has_token ? $t('social.channels.tokenSaved') : $t('social.channels.pasteToken')" >
-              <button class="btn-ghost btn-sm" :disabled="!tokenEdit[c.id]" @click="patch(c, { access_token: tokenEdit[c.id] }); tokenEdit[c.id] = ''">{{ $t('common.save') }}</button>
+              <UInput v-model="tokenEdit[c.id]" type="password" :placeholder="c.has_token ? $t('social.channels.tokenSaved') : $t('social.channels.pasteToken')" />
+              <UButton color="neutral" variant="soft" size="sm" type="submit" :disabled="!tokenEdit[c.id]" @click="patch(c, { access_token: tokenEdit[c.id] }); tokenEdit[c.id] = ''">{{ $t('common.save') }}</UButton>
             </div>
           </div>
           <div v-if="c.provider !== 'webhook'">
             <label class="label">{{ $t('social.channels.callbackUrl') }}</label>
-            <div class="flex gap-2"><input :value="c.provider === 'tiktok' ? hooks.tiktok : hooks.meta" readonly class="input bg-paper py-2 font-mono text-xs" ><button class="btn-ghost btn-sm" @click="copy(c.provider === 'tiktok' ? hooks.tiktok : hooks.meta, c.id + 'u')">{{ copiedKey === c.id + 'u' ? '✓' : $t('common.copy') }}</button></div>
+            <div class="flex gap-2"><UInput size="sm" :model-value="c.provider === 'tiktok' ? hooks.tiktok : hooks.meta" readonly class="font-mono" /><UButton color="neutral" variant="soft" size="sm" type="submit" @click="copy(c.provider === 'tiktok' ? hooks.tiktok : hooks.meta, c.id + 'u')">{{ copiedKey === c.id + 'u' ? '✓' : $t('common.copy') }}</UButton></div>
           </div>
           <template v-if="c.provider === 'webhook' || c.provider === 'tiktok'">
             <div>
               <label class="label">{{ $t('social.channels.ingestUrl') }}</label>
-              <div class="flex gap-2"><input :value="`${apiBase}/webhooks/ingest/${c.id}`" readonly class="input bg-paper py-2 font-mono text-xs" ><button class="btn-ghost btn-sm" @click="copy(`${apiBase}/webhooks/ingest/${c.id}`, c.id + 'i')">{{ copiedKey === c.id + 'i' ? '✓' : $t('common.copy') }}</button></div>
+              <div class="flex gap-2"><UInput size="sm" :model-value="`${apiBase}/webhooks/ingest/${c.id}`" readonly class="font-mono" /><UButton color="neutral" variant="soft" size="sm" type="submit" @click="copy(`${apiBase}/webhooks/ingest/${c.id}`, c.id + 'i')">{{ copiedKey === c.id + 'i' ? '✓' : $t('common.copy') }}</UButton></div>
             </div>
             <div>
               <label class="label">{{ $t('social.channels.signingSecret') }}</label>
-              <div class="flex gap-2"><input :value="c.secret" readonly class="input bg-paper py-2 font-mono text-xs" ><button class="btn-ghost btn-sm" @click="copy(c.secret, c.id + 's')">{{ copiedKey === c.id + 's' ? '✓' : $t('common.copy') }}</button><button class="btn-ghost btn-sm" @click="patch(c, { rotate_secret: true })">{{ $t('social.channels.rotate') }}</button></div>
+              <div class="flex gap-2"><UInput size="sm" :model-value="c.secret" readonly class="font-mono" /><UButton color="neutral" variant="soft" size="sm" type="submit" @click="copy(c.secret, c.id + 's')">{{ copiedKey === c.id + 's' ? '✓' : $t('common.copy') }}</UButton><UButton color="neutral" variant="soft" size="sm" type="submit" @click="patch(c, { rotate_secret: true })">{{ $t('social.channels.rotate') }}</UButton></div>
             </div>
             <details class="md:col-span-2">
               <summary class="cursor-pointer text-xs font-semibold text-muted">{{ $t('social.channels.curlExample') }}</summary>
-              <pre class="mt-2 overflow-x-auto rounded-xl bg-ink p-3 text-[11px] text-white">{{ curl(c) }}</pre>
+              <pre class="mt-2 overflow-x-auto rounded-xl bg-ink p-3 text-[11px] text-paper">{{ curl(c) }}</pre>
             </details>
           </template>
         </div>
@@ -149,28 +149,28 @@ curl -X POST ${apiBase.value}/webhooks/ingest/${c.id} \\
         <div class="flex items-center gap-3">
           <SocialProviderBadge :provider="p" size="md" />
           <div class="font-bold">{{ g.title }}</div>
-          <button v-if="adding !== p" class="btn-ghost btn-sm ml-auto" @click="adding = p">{{ $t('social.channels.connect') }}</button>
+          <UButton color="neutral" variant="soft" size="sm" type="submit" v-if="adding !== p" class="ml-auto" @click="adding = p">{{ $t('social.channels.connect') }}</UButton>
         </div>
         <ol class="mt-3 list-decimal space-y-1 pl-5 text-xs text-muted">
           <li v-for="(s, i) in g.steps" :key="i">{{ s }}</li>
         </ol>
         <div v-if="p !== 'webhook'" class="mt-3 flex gap-2 text-xs">
-          <input :value="p === 'tiktok' ? hooks.tiktok : hooks.meta" readonly class="input bg-paper py-1.5 font-mono text-[11px]" >
-          <button class="btn-ghost btn-sm" @click="copy(p === 'tiktok' ? hooks.tiktok : hooks.meta, 'g' + p)">{{ copiedKey === 'g' + p ? '✓' : $t('common.copy') }}</button>
+          <UInput size="md" :model-value="p === 'tiktok' ? hooks.tiktok : hooks.meta" readonly class="font-mono text-[11px]" />
+          <UButton color="neutral" variant="soft" size="sm" type="submit" @click="copy(p === 'tiktok' ? hooks.tiktok : hooks.meta, 'g' + p)">{{ copiedKey === 'g' + p ? '✓' : $t('common.copy') }}</UButton>
         </div>
         <form v-if="adding === p" class="mt-4 space-y-2 border-t border-line pt-4" @submit.prevent="add">
-          <input v-model="form.name" class="input py-2" :placeholder="$t('social.channels.namePlaceholder', { example: $t(`social.channels.nameExample.${p === 'whatsapp' ? 'whatsapp' : p === 'webhook' ? 'webhook' : 'page'}`) })" >
+          <UInput v-model="form.name" :placeholder="$t('social.channels.namePlaceholder', { example: $t(`social.channels.nameExample.${p === 'whatsapp' ? 'whatsapp' : p === 'webhook' ? 'webhook' : 'page'}`) })" />
           <template v-if="g.idLabel">
-            <input v-model="form.external_id" required class="input py-2 font-mono" :placeholder="g.idLabel" >
+            <UInput v-model="form.external_id" required class="font-mono" :placeholder="g.idLabel" />
             <p class="text-[11px] text-muted">{{ g.idHelp }}</p>
           </template>
           <template v-if="p === 'facebook' || p === 'whatsapp'">
-            <input v-model="form.access_token" type="password" class="input py-2" :placeholder="$t('social.channels.accessToken')" >
+            <UInput v-model="form.access_token" type="password" :placeholder="$t('social.channels.accessToken')" />
             <p class="text-[11px] text-muted">{{ g.tokenHelp }}. {{ $t('social.channels.tokenStored') }}</p>
           </template>
           <div class="flex justify-end gap-2">
-            <button type="button" class="btn-ghost btn-sm" @click="adding = null">{{ $t('common.cancel') }}</button>
-            <button class="btn-primary btn-sm">{{ $t('social.channels.connect') }}</button>
+            <UButton color="neutral" variant="soft" size="sm" type="button" @click="adding = null">{{ $t('common.cancel') }}</UButton>
+            <UButton size="sm" type="submit">{{ $t('social.channels.connect') }}</UButton>
           </div>
         </form>
       </div>

@@ -756,7 +756,7 @@ pub async fn order_document(State(st): State<AppState>, user: AuthUser, Path(id)
     let items: Vec<crate::models::OrderItem> = sqlx::query_as("SELECT * FROM order_items WHERE order_id = $1").bind(id).fetch_all(&st.db).await?;
     let shop: Shop = sqlx::query_as("SELECT * FROM shops WHERE id = $1").bind(supplier).fetch_one(&st.db).await?;
     let (buyer_name, buyer_email): (String, String) =
-        sqlx::query_as("SELECT display_name, email FROM users WHERE id = $1").bind(buyer_id).fetch_one(&st.db).await?;
+        sqlx::query_as("SELECT display_name, COALESCE(email, phone, '') FROM users WHERE id = $1").bind(buyer_id).fetch_one(&st.db).await?;
     let (vat, _) = vat_for(order.total_cents, shop.vat_bps, true);
     Ok(Json(json!({
         "order": order, "items": items,

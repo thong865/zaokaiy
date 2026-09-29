@@ -41,6 +41,12 @@ pub struct MediaAsset {
     pub alt: String,
     pub original_name: String,
     pub created_at: DateTime<Utc>,
+    /// Responsive WebP renditions [{w, h, url}], largest first (empty for videos, GIFs, external URLs).
+    pub variants: serde_json::Value,
+    #[serde(skip)]
+    pub variant_keys: Vec<String>,
+    pub placeholder: String,
+    pub dominant_color: String,
 }
 
 #[derive(Debug, Serialize, FromRow)]
@@ -60,18 +66,26 @@ pub struct GalleryItem {
 }
 
 const ASSET_COLS: &str = "a.id, a.shop_id, a.kind, a.source, a.mime, a.url, a.thumb_url, a.storage_key,
-     a.thumb_key, a.size_bytes, a.width, a.height, a.alt, a.original_name, a.created_at";
+     a.thumb_key, a.size_bytes, a.width, a.height, a.alt, a.original_name, a.created_at,
+     a.variants, a.variant_keys, a.placeholder, a.dominant_color";
+
+/// JSON for `products.cover`: the asset `a` with its renditions.
+pub const COVER_JSON: &str = "jsonb_build_object('url', a.url, 'thumb_url', a.thumb_url, 'width', a.width, 'height', a.height,
+     'variants', a.variants, 'placeholder', a.placeholder, 'color', a.dominant_color, 'alt', a.alt)";
 
 /// Refresh the denormalised `products.images` cache (image URLs in gallery order) used by
 /// catalog listings.
 pub async fn sync_product_images<'e>(ex: impl PgExecutor<'e>, product_id: Uuid) -> AppResult<()> {
-    sqlx::query(
+    sqlx::query(&format!(
         "UPDATE products SET images = COALESCE((
             SELECT jsonb_agg(a.url ORDER BY pm.position)
             FROM product_media pm JOIN media_assets a ON a.id = pm.asset_id
-            WHERE pm.product_id = $1 AND a.kind = 'image'), '[]'::jsonb), updated_at = now()
-         WHERE id = $1",
-    )
+            WHERE pm.product_id = $1 AND a.kind = 'image'), '[]'::jsonb),
+          cover = (SELECT {COVER_JSON} FROM product_media pm JOIN media_assets a ON a.id = pm.asset_id
+                   WHERE pm.product_id = $1 AND a.kind = 'image' ORDER BY pm.position LIMIT 1),
+          updated_at = now()
+         WHERE id = $1"
+    ))
     .bind(product_id)
     .execute(ex)
     .await?;
@@ -225,12 +239,24 @@ pub async fn upload(
         return Err(AppError::bad("no files received (use the 'file' field)"));
     }
 
+    // Process files in parallel (bounded by `media::cpu_permit`), keep the upload order.
+    let handles: Vec<_> = files
+        .into_iter()
+        .map(|(name, data)| {
+            let (st, alt) = (st.clone(), alt.clone());
+            let uid = user.id;
+            tokio::spawn(async move {
+                let r = store_one(&st, shop_id, uid, &name, &alt, data, max_image, max_video).await;
+                (name, r)
+            })
+        })
+        .collect();
     let mut created: Vec<MediaAsset> = Vec::new();
     let mut errors: Vec<Value> = Vec::new();
-    for (name, data) in files {
-        match store_one(&st, shop_id, user.id, &name, &alt, data, max_image, max_video).await {
-            Ok(a) => created.push(a),
-            Err(e) => errors.push(json!({ "file": name, "message": e.to_string() })),
+    for h in handles {
+        match h.await.map_err(|e| AppError::Internal(e.to_string()))? {
+            (_, Ok(a)) => created.push(a),
+            (name, Err(e)) => errors.push(json!({ "file": name, "message": e.to_string() })),
         }
     }
 
@@ -254,9 +280,13 @@ async fn store_one(
     max_image: usize,
     max_video: usize,
 ) -> AppResult<MediaAsset> {
-    let p = tokio::task::spawn_blocking(move || media::process(data, max_image, max_video))
+    let min_edge = st.cfg.media_min_image_edge;
+    // Image processing is CPU-heavy: at most one job per core, so a burst of uploads can't starve the API.
+    let _permit = media::cpu_permit().await;
+    let p = tokio::task::spawn_blocking(move || media::process(data, max_image, max_video, min_edge))
         .await
         .map_err(|e| AppError::Internal(e.to_string()))??;
+    drop(_permit);
 
     let id = Uuid::new_v4();
     let base = format!("shops/{shop_id}/{}/{id}", Utc::now().format("%Y/%m"));
@@ -278,9 +308,12 @@ async fn store_one(
         }
         None => None,
     };
+    let (variants, variant_keys) = put_variants(st, &base, &p.variants).await?;
     let url = st.storage.url(&key);
     let thumb_url = thumb_key.as_deref().map(|k| st.storage.url(k));
-    let stored_size = p.main.len() as i64 + p.thumb.as_ref().map(|t| t.len() as i64).unwrap_or(0);
+    let stored_size = p.main.len() as i64
+        + p.thumb.as_ref().map(|t| t.len() as i64).unwrap_or(0)
+        + p.variants.iter().map(|v| v.data.len() as i64).sum::<i64>();
     let default_alt = if alt.is_empty() {
         name.rsplit_once('.').map(|(n, _)| n).unwrap_or(name).replace(['_', '-'], " ")
     } else {
@@ -289,8 +322,9 @@ async fn store_one(
 
     let res = sqlx::query_as(&format!(
         "INSERT INTO media_assets AS a (id, shop_id, kind, source, mime, url, thumb_url, storage_key, thumb_key,
-                                   size_bytes, width, height, alt, original_name, created_by)
-         VALUES ($1,$2,$3,'upload',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING {ASSET_COLS}"
+                                   size_bytes, width, height, alt, original_name, created_by,
+                                   variants, variant_keys, placeholder, dominant_color)
+         VALUES ($1,$2,$3,'upload',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING {ASSET_COLS}"
     ))
     .bind(id)
     .bind(shop_id)
@@ -306,19 +340,126 @@ async fn store_one(
     .bind(default_alt)
     .bind(name)
     .bind(user_id)
+    .bind(&variants)
+    .bind(&variant_keys)
+    .bind(&p.placeholder)
+    .bind(&p.color)
     .fetch_one(&st.db)
     .await;
 
     match res {
         Ok(a) => Ok(a),
         Err(e) => {
-            st.storage.delete(&key).await;
-            if let Some(k) = &thumb_key {
+            for k in std::iter::once(&key).chain(thumb_key.iter()).chain(variant_keys.iter()) {
                 st.storage.delete(k).await;
             }
             Err(e.into())
         }
     }
+}
+
+/// Upload WebP renditions as `<base>_w<width>.webp`; returns the public list and the storage keys.
+async fn put_variants(st: &AppState, base: &str, variants: &[media::Variant]) -> AppResult<(Value, Vec<String>)> {
+    let mut list = Vec::new();
+    let mut keys: Vec<String> = Vec::new();
+    for v in variants {
+        let k = format!("{base}_w{}.webp", v.width);
+        if let Err(e) = st.storage.put(&k, v.data.clone(), "image/webp").await {
+            for done in &keys {
+                st.storage.delete(done).await;
+            }
+            return Err(e);
+        }
+        list.push(json!({ "w": v.width, "h": v.height, "url": st.storage.url(&k) }));
+        keys.push(k);
+    }
+    Ok((Value::Array(list), keys))
+}
+
+/// Upload limits and image guidance for the uploader UI.
+pub async fn config(State(st): State<AppState>) -> Json<Value> {
+    Json(json!({
+        "max_image_mb": st.cfg.media_max_image_mb,
+        "max_video_mb": st.cfg.media_max_video_mb,
+        "min_image_edge": st.cfg.media_min_image_edge,
+        "recommended_edge": 1200,
+        "variant_widths": media::VARIANT_WIDTHS,
+    }))
+}
+
+/// Create renditions for uploaded images that don't have them yet (uploads from before this
+/// feature). Returns (processed, failed, remaining).
+pub async fn backfill_variants(st: &AppState, limit: i64) -> AppResult<(usize, usize, i64)> {
+    let todo: Vec<(Uuid, String, Option<String>)> = sqlx::query_as(
+        "SELECT id, storage_key, thumb_key FROM media_assets
+         WHERE source = 'upload' AND kind = 'image' AND mime <> 'image/gif' AND storage_key IS NOT NULL
+           AND variants = '[]'::jsonb AND placeholder = ''
+         ORDER BY created_at DESC LIMIT $1",
+    )
+    .bind(limit)
+    .fetch_all(&st.db)
+    .await?;
+    let (mut ok, mut failed) = (0, 0);
+    for (id, key, _) in todo {
+        let result: AppResult<()> = async {
+            let data = st.storage.get(&key).await?;
+            let _permit = media::cpu_permit().await;
+            let (variants, ph, color, w, h) = tokio::task::spawn_blocking(move || media::derive(&data))
+                .await
+                .map_err(|e| AppError::Internal(e.to_string()))??;
+            let base = key.rsplit_once('.').map(|(b, _)| b.to_string()).unwrap_or(key.clone());
+            let (list, keys) = put_variants(st, &base, &variants).await?;
+            let extra: i64 = variants.iter().map(|v| v.data.len() as i64).sum();
+            let products: Vec<Uuid> = sqlx::query_scalar(
+                "UPDATE media_assets SET variants = $2, variant_keys = $3, placeholder = $4, dominant_color = $5,
+                    width = COALESCE(width, $6), height = COALESCE(height, $7), size_bytes = size_bytes + $8
+                 WHERE id = $1 RETURNING (SELECT array_agg(product_id) FROM product_media WHERE asset_id = $1)",
+            )
+            .bind(id)
+            .bind(&list)
+            .bind(&keys)
+            .bind(&ph)
+            .bind(&color)
+            .bind(w as i32)
+            .bind(h as i32)
+            .bind(extra)
+            .fetch_one(&st.db)
+            .await
+            .map(|v: Option<Vec<Uuid>>| v.unwrap_or_default())?;
+            for pid in products {
+                sync_product_images(&st.db, pid).await?;
+            }
+            Ok(())
+        }
+        .await;
+        match result {
+            Ok(()) => ok += 1,
+            Err(e) => {
+                failed += 1;
+                tracing::warn!(asset = %id, error = %e, "media backfill failed");
+                // Mark so it isn't retried forever.
+                sqlx::query("UPDATE media_assets SET placeholder = 'failed' WHERE id = $1").bind(id).execute(&st.db).await.ok();
+            }
+        }
+    }
+    let remaining: i64 = sqlx::query_scalar(
+        "SELECT count(*) FROM media_assets WHERE source = 'upload' AND kind = 'image' AND mime <> 'image/gif'
+           AND storage_key IS NOT NULL AND variants = '[]'::jsonb AND placeholder = ''",
+    )
+    .fetch_one(&st.db)
+    .await?;
+    Ok((ok, failed, remaining))
+}
+
+#[derive(Deserialize)]
+pub struct BackfillQ {
+    pub limit: Option<i64>,
+}
+
+/// Admin: generate renditions for older uploads now (also runs automatically at startup).
+pub async fn admin_backfill(State(st): State<AppState>, _a: crate::auth::AdminUser, Query(q): Query<BackfillQ>) -> AppResult<Json<Value>> {
+    let (processed, failed, remaining) = backfill_variants(&st, q.limit.unwrap_or(100).clamp(1, 1000)).await?;
+    Ok(Json(json!({ "processed": processed, "failed": failed, "remaining": remaining })))
 }
 
 #[derive(Deserialize)]
@@ -493,7 +634,7 @@ async fn delete_assets(st: &AppState, shop_id: Uuid, ids: Vec<Uuid>, force: bool
     tx.commit().await?;
 
     for a in &assets {
-        for key in [&a.storage_key, &a.thumb_key].into_iter().flatten() {
+        for key in [&a.storage_key, &a.thumb_key].into_iter().flatten().chain(a.variant_keys.iter()) {
             st.storage.delete(key).await;
         }
     }
@@ -594,7 +735,8 @@ pub async fn public_gallery(st: &AppState, product_id: Uuid) -> AppResult<Vec<Va
         .map(|g| {
             json!({
                 "id": g.asset.id, "kind": g.asset.kind, "url": g.asset.url, "thumb_url": g.asset.thumb_url,
-                "alt": g.asset.alt, "mime": g.asset.mime, "width": g.asset.width, "height": g.asset.height
+                "alt": g.asset.alt, "mime": g.asset.mime, "width": g.asset.width, "height": g.asset.height,
+                "variants": g.asset.variants, "placeholder": g.asset.placeholder, "color": g.asset.dominant_color
             })
         })
         .collect())

@@ -5,13 +5,13 @@ const { locale, locales, setLocale } = useI18n()
 </script>
 
 <template>
-  <div class="inline-flex shrink-0 rounded-full border p-0.5 text-xs font-bold" :class="dark ? 'border-white/20' : 'border-line bg-white'" role="group" :aria-label="$t('common.language')">
+  <div class="inline-flex shrink-0 rounded-xl p-1 text-xs font-bold" :class="dark ? 'bg-white/10' : 'bg-field'" role="group" :aria-label="$t('common.language')">
     <button
       v-for="l in locales"
       :key="l.code"
       type="button"
-      class="rounded-full px-2.5 py-1 transition"
-      :class="locale === l.code ? (dark ? 'bg-white text-ink' : 'bg-ink text-white') : dark ? 'text-white/70 hover:text-white' : 'text-muted hover:text-ink'"
+      class="rounded-lg px-2.5 py-1 transition-all duration-200"
+      :class="locale === l.code ? (dark ? 'bg-white text-night' : 'bg-surface text-ink shadow-[0_2px_8px_rgb(0_0_0/0.08)]') : dark ? 'text-white/70 hover:text-white' : 'text-muted hover:text-ink'"
       :lang="l.code"
       :aria-pressed="locale === l.code"
       @click="setLocale(l.code)"

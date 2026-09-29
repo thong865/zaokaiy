@@ -74,16 +74,16 @@ async function doInvoice() {
         <p class="text-sm text-muted">{{ $t('pos.sales.subtitle') }}</p>
       </div>
       <div class="flex gap-2">
-        <NuxtLink to="/pos" class="btn-primary">{{ $t('pos.sales.openPos') }}</NuxtLink>
+        <UButton to="/pos">{{ $t('pos.sales.openPos') }}</UButton>
       </div>
     </div>
 
     <div class="mt-6 flex flex-wrap items-center gap-3">
-      <input v-model="date" type="date" class="input w-44" :max="today()" :aria-label="$t('common.date')" >
-      <input v-model="q" class="input w-64" :placeholder="$t('pos.sales.searchPlaceholder')" >
+      <UInput v-model="date" type="date" class="w-44" :max="today()" :aria-label="$t('common.date')" />
+      <UInput v-model="q" class="w-64" :placeholder="$t('pos.sales.searchPlaceholder')" />
       <div class="ml-auto flex items-center gap-2">
         <select v-model="paperWidth" class="input w-24 py-2" :aria-label="$t('pos.paperWidth')"><option value="80">80 mm</option><option value="58">58 mm</option></select>
-        <button class="btn-ghost" @click="print(`/print/z-report?shop=${shopId}&date=${date}&w=${paperWidth}`)">{{ $t('pos.sales.zReport') }}</button>
+        <UButton color="neutral" variant="soft" type="submit" @click="print(`/print/z-report?shop=${shopId}&date=${date}&w=${paperWidth}`)">{{ $t('pos.sales.zReport') }}</UButton>
       </div>
     </div>
 
@@ -115,41 +115,41 @@ async function doInvoice() {
               <span v-else class="text-muted">—</span>
             </td>
             <td class="whitespace-nowrap text-right">
-              <button class="btn-ghost btn-sm" @click="print(`/print/receipt/${r.id}?w=${paperWidth}`)">{{ $t('pos.sales.receipt') }}</button>
-              <button v-if="r.invoice_number" class="btn-ghost btn-sm ml-1" @click="open(`/print/invoice/${r.id}`)">{{ $t('pos.sales.invoice') }}</button>
-              <button v-else-if="r.status === 'completed'" class="btn-ghost btn-sm ml-1" @click="invoicing = r; inv.name = r.customer_name">{{ $t('pos.sales.issueInvoice') }}</button>
-              <button v-if="r.status === 'completed'" class="btn-ghost btn-sm ml-1 text-brand-700" @click="voiding = r">{{ $t('pos.sales.void') }}</button>
+              <UButton color="neutral" variant="soft" size="sm" type="submit" @click="print(`/print/receipt/${r.id}?w=${paperWidth}`)">{{ $t('pos.sales.receipt') }}</UButton>
+              <UButton color="neutral" variant="soft" size="sm" type="submit" v-if="r.invoice_number" class="ml-1" @click="open(`/print/invoice/${r.id}`)">{{ $t('pos.sales.invoice') }}</UButton>
+              <UButton color="neutral" variant="soft" size="sm" type="submit" v-else-if="r.status === 'completed'" class="ml-1" @click="invoicing = r; inv.name = r.customer_name">{{ $t('pos.sales.issueInvoice') }}</UButton>
+              <UButton color="neutral" variant="soft" size="sm" type="submit" v-if="r.status === 'completed'" class="ml-1 text-brand-700" @click="voiding = r">{{ $t('pos.sales.void') }}</UButton>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
     <EmptyState v-else class="mt-5" :title="$t('pos.sales.emptyTitle')" :text="$t('pos.sales.emptyText')">
-      <NuxtLink to="/pos" class="btn-primary">{{ $t('pos.sales.openPos') }}</NuxtLink>
+      <UButton to="/pos">{{ $t('pos.sales.openPos') }}</UButton>
     </EmptyState>
 
     <Teleport to="body">
-      <div v-if="voiding" class="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-4" @click.self="voiding = null">
+      <div v-if="voiding" class="fixed inset-0 z-50 grid place-items-center bg-night/40 p-4" @click.self="voiding = null">
         <form class="card w-full max-w-md space-y-3 p-6 shadow-2xl" @submit.prevent="doVoid">
           <div class="text-lg font-bold">{{ $t('pos.sales.voidTitle', { number: voiding.number }) }}</div>
           <p class="text-sm text-muted">{{ $t('pos.sales.voidText') }}</p>
-          <input v-model="voidReason" required class="input" :placeholder="$t('pos.sales.voidReason')" autofocus >
+          <UInput v-model="voidReason" required :placeholder="$t('pos.sales.voidReason')" autofocus />
           <div class="flex justify-end gap-2">
-            <button type="button" class="btn-ghost" @click="voiding = null">{{ $t('common.cancel') }}</button>
-            <button class="btn bg-brand-700 text-white hover:bg-brand-600">{{ $t('pos.sales.voidSale') }}</button>
+            <UButton color="neutral" variant="soft" type="button" @click="voiding = null">{{ $t('common.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" type="submit" class="bg-brand-700 text-white hover:bg-brand-600">{{ $t('pos.sales.voidSale') }}</UButton>
           </div>
         </form>
       </div>
-      <div v-if="invoicing" class="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-4" @click.self="invoicing = null">
+      <div v-if="invoicing" class="fixed inset-0 z-50 grid place-items-center bg-night/40 p-4" @click.self="invoicing = null">
         <form class="card w-full max-w-md space-y-3 p-6 shadow-2xl" @submit.prevent="doInvoice">
           <div class="text-lg font-bold">{{ $t('pos.sales.invoiceTitle', { number: invoicing.number }) }}</div>
-          <input v-model="inv.name" required class="input" :placeholder="$t('pos.customerNameReq')" autofocus >
-          <div class="flex gap-2"><input v-model="inv.tax_id" class="input" :placeholder="$t('pos.taxId')" ><input v-model="inv.branch" class="input" :placeholder="$t('pos.branch')" ></div>
-          <textarea v-model="inv.address" required rows="3" class="input" :placeholder="$t('pos.addressReq')" />
-          <input v-model="inv.phone" class="input" :placeholder="$t('common.phone')" >
+          <UInput v-model="inv.name" required :placeholder="$t('pos.customerNameReq')" autofocus />
+          <div class="flex gap-2"><UInput v-model="inv.tax_id" :placeholder="$t('pos.taxId')" /><UInput v-model="inv.branch" :placeholder="$t('pos.branch')" /></div>
+          <UTextarea v-model="inv.address" required :rows="3" :placeholder="$t('pos.addressReq')" />
+          <UInput v-model="inv.phone" :placeholder="$t('common.phone')" />
           <div class="flex justify-end gap-2">
-            <button type="button" class="btn-ghost" @click="invoicing = null">{{ $t('common.cancel') }}</button>
-            <button class="btn-primary">{{ $t('pos.issuePrint') }}</button>
+            <UButton color="neutral" variant="soft" type="button" @click="invoicing = null">{{ $t('common.cancel') }}</UButton>
+            <UButton type="submit">{{ $t('pos.issuePrint') }}</UButton>
           </div>
         </form>
       </div>

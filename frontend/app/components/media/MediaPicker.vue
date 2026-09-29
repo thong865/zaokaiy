@@ -85,12 +85,12 @@ function onKey(e: KeyboardEvent) {
 
 <template>
   <Teleport to="body">
-    <div v-if="open" class="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-3 sm:p-6" @click.self="open = false" @keydown="onKey">
+    <div v-if="open" class="fixed inset-0 z-50 grid place-items-center bg-night/40 p-3 sm:p-6" @click.self="open = false" @keydown="onKey">
       <div class="card flex max-h-[90dvh] w-full max-w-4xl flex-col overflow-hidden shadow-2xl" role="dialog" :aria-label="$t('media.title')">
         <div class="flex items-center gap-2 border-b border-line px-5 py-3">
           <div class="font-bold">{{ $t('media.title') }}</div>
           <div class="ml-4 flex rounded-full bg-paper p-1 text-xs font-semibold">
-            <button v-for="t in (['library', 'upload', 'url'] as const)" :key="t" type="button" class="rounded-full px-3 py-1" :class="tab === t && 'bg-ink text-white'" @click="tab = t">
+            <button v-for="t in (['library', 'upload', 'url'] as const)" :key="t" type="button" class="rounded-xl px-3 py-1" :class="tab === t && 'bg-brand-500 text-white shadow-[0_6px_16px_-8px_var(--brand-500)]'" @click="tab = t">
               {{ $t(`media.picker.tab.${t}`) }}
             </button>
           </div>
@@ -101,7 +101,7 @@ function onKey(e: KeyboardEvent) {
           <p v-if="error" class="mb-3 text-sm text-brand-700">{{ error }}</p>
           <template v-if="tab === 'library'">
             <div class="mb-4 flex flex-wrap gap-2">
-              <input v-model="q" class="input max-w-xs py-2" :placeholder="$t('media.searchPlaceholder')" >
+              <UInput v-model="q" class="max-w-xs" :placeholder="$t('media.searchPlaceholder')" />
               <select v-if="!kind" v-model="filter" class="input w-36 py-2"><option value="">{{ $t('media.allMedia') }}</option><option value="image">{{ $t('media.images') }}</option><option value="video">{{ $t('media.videos') }}</option></select>
             </div>
             <div v-if="loading && !items.length" class="grid grid-cols-3 gap-3 sm:grid-cols-5">
@@ -109,7 +109,7 @@ function onKey(e: KeyboardEvent) {
             </div>
             <div v-else-if="items.length" class="grid grid-cols-3 gap-3 sm:grid-cols-5">
               <button v-for="a in items" :key="a.id" type="button" class="group text-left" @click="toggle(a)">
-                <MediaTile :asset="a" :selected="isPicked(a)" class="aspect-square">
+                <MediaTile :asset="a" :selected="isPicked(a)" sizes="(min-width: 768px) 140px, 30vw" class="aspect-square">
                   <span v-if="isPicked(a) && multiple" class="absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-brand-500 text-xs font-bold text-white">
                     {{ picked.findIndex((p) => p.id === a.id) + 1 }}
                   </span>
@@ -118,21 +118,21 @@ function onKey(e: KeyboardEvent) {
               </button>
             </div>
             <EmptyState v-else :title="$t('media.picker.emptyTitle')" :text="$t('media.picker.emptyText')">
-              <button type="button" class="btn-primary" @click="tab = 'upload'">{{ $t('media.picker.uploadMedia') }}</button>
+              <UButton type="button" @click="tab = 'upload'">{{ $t('media.picker.uploadMedia') }}</UButton>
             </EmptyState>
           </template>
           <MediaUploader v-else-if="tab === 'upload'" :shop-id="shopId" @uploaded="onUploaded" />
           <form v-else class="space-y-3" @submit.prevent="submitUrl">
             <p class="text-sm text-muted">{{ $t('media.picker.urlHelp') }}</p>
-            <input v-model="url" type="url" required class="input" placeholder="https://…/photo.jpg" >
-            <button class="btn-dark">{{ $t('media.picker.addToLibrary') }}</button>
+            <UInput v-model="url" type="url" required placeholder="https://…/photo.jpg" />
+            <UButton color="neutral" type="submit">{{ $t('media.picker.addToLibrary') }}</UButton>
           </form>
         </div>
 
         <div v-if="multiple" class="flex items-center gap-3 border-t border-line px-5 py-3">
           <span class="text-sm text-muted">{{ $t('media.selected', { n: picked.length }) }}{{ max < 100 ? ` · ${$t('media.picker.max', { max })}` : '' }}</span>
-          <button type="button" class="btn-ghost btn-sm ml-auto" @click="open = false">{{ $t('common.cancel') }}</button>
-          <button type="button" class="btn-primary btn-sm" :disabled="!picked.length" @click="confirm">{{ $t('media.picker.addN', { n: picked.length || '' }) }}</button>
+          <UButton color="neutral" variant="soft" size="sm" type="button" class="ml-auto" @click="open = false">{{ $t('common.cancel') }}</UButton>
+          <UButton size="sm" type="button" :disabled="!picked.length" @click="confirm">{{ $t('media.picker.addN', { n: picked.length || '' }) }}</UButton>
         </div>
       </div>
     </div>

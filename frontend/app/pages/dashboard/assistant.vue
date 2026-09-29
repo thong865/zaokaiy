@@ -65,7 +65,7 @@ const toolLabel = computed<Record<string, string>>(() => Object.fromEntries(TOOL
           <div class="mx-auto grid size-14 place-items-center rounded-2xl bg-brand-500 text-2xl text-white">✦</div>
           <div class="mt-4 font-bold">{{ $t('grow.assistant.empty') }}</div>
           <div class="mt-4 flex flex-wrap justify-center gap-2">
-            <button v-for="s in suggestions" :key="s" class="chip border border-line bg-white px-3 py-1.5 text-left text-xs font-medium hover:border-ink" @click="send(s)">{{ s }}</button>
+            <button v-for="s in suggestions" :key="s" class="chip border border-line bg-surface px-3 py-1.5 text-left text-xs font-medium hover:border-ink" @click="send(s)">{{ s }}</button>
           </div>
         </div>
       </div>
@@ -74,7 +74,7 @@ const toolLabel = computed<Record<string, string>>(() => Object.fromEntries(TOOL
           <div v-if="m.actions?.length" class="mb-2 flex flex-wrap gap-1.5">
             <span v-for="(a, j) in m.actions" :key="j" class="chip bg-paper text-muted">⚙ {{ toolLabel[a.tool] ?? a.tool }}</span>
           </div>
-          <div v-if="m.role === 'user'" class="rounded-2xl rounded-br-md bg-ink px-4 py-2.5 text-sm text-white">{{ m.content }}</div>
+          <div v-if="m.role === 'user'" class="rounded-2xl rounded-br-md bg-ink px-4 py-2.5 text-sm text-paper">{{ m.content }}</div>
           <!-- eslint-disable-next-line vue/no-v-html -->
           <div v-else class="rounded-2xl rounded-bl-md bg-paper px-4 py-3 text-sm leading-relaxed" v-html="md(m.content)" />
         </div>
@@ -83,8 +83,8 @@ const toolLabel = computed<Record<string, string>>(() => Object.fromEntries(TOOL
     </div>
     <p v-if="error" class="mt-2 text-sm text-brand-700">{{ error }}</p>
     <form class="mt-3 flex gap-2" @submit.prevent="send()">
-      <input v-model="input" class="input rounded-full" :placeholder="$t('grow.assistant.placeholder')" :disabled="busy" >
-      <button class="btn-primary" :disabled="busy || !input.trim()">{{ $t('grow.assistant.send') }}</button>
+      <UInput v-model="input" :placeholder="$t('grow.assistant.placeholder')" :disabled="busy" />
+      <UButton type="submit" :disabled="busy || !input.trim()">{{ $t('grow.assistant.send') }}</UButton>
     </form>
   </div>
 </template>

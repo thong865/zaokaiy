@@ -1,0 +1,243 @@
+{
+  "kyb": {
+    "nav": "Business verification",
+    "title": "Business verification (KYC)",
+    "subtitle": "Verify your registered business to sell on zaokaiy. We check your registration, owners and payout account — your documents are encrypted and only seen by our compliance team.",
+    "select": "Select…",
+    "checklist": "Still needed",
+    "privacy": "ID numbers are encrypted; after saving only the last 4 characters are shown.",
+    "savedKeep": "Saved •••• {last4} — leave blank to keep",
+    "saveDraft": "Save draft",
+    "submit": "Submit for review",
+    "submitted": "Submitted — we'll review your business within 1–2 working days.",
+    "declaration": "I confirm the information and documents are true and complete, and I'm authorised to act for this business.",
+    "history": "History",
+    "status": {
+      "none": "Not started",
+      "draft": "Draft",
+      "submitted": "In review",
+      "changes_requested": "Changes requested",
+      "approved": "Verified",
+      "rejected": "Rejected",
+      "revoked": "Revoked"
+    },
+    "badge": {
+      "verified": "Verified business",
+      "tooltip": "zaokaiy checked this shop's business registration, owners and bank account."
+    },
+    "entity": {
+      "label": "Seller type",
+      "individual": "Individual",
+      "business": "Registered business (company)",
+      "hint": "Registered businesses verify their company (KYC) before publishing and get a “Verified business” badge.",
+      "openLabel": "This is a registered business",
+      "openHint": "Company or enterprise with a registration certificate — you'll verify it (KYC) before selling."
+    },
+    "individual": {
+      "title": "This shop is set up for an individual seller",
+      "text": "Business verification is for registered companies and enterprises. Switch if you sell as a business: you'll add your registration, owners and bank account, and get a “Verified business” badge once approved.",
+      "switch": "My shop is a registered business"
+    },
+    "banner": {
+      "approved": "Your business was verified on {date}.",
+      "reviewDue": "Next review by {date}.",
+      "submitted": "Your verification is in review. You can't edit it until we decide — we'll let you know here.",
+      "changes_requested": "Please update your verification",
+      "rejected": "Your verification was rejected",
+      "revoked": "Your verification was revoked",
+      "gate": "Until your business is verified you can create products as drafts, but not publish them."
+    },
+    "gate": {
+      "form": "Your business must be verified before this product can go live. You can save it as a draft."
+    },
+    "company": {
+      "title": "Company details",
+      "type": "Company type",
+      "legalName": "Registered name (English)",
+      "legalNamePh": "As on your registration certificate",
+      "legalNameLocal": "Registered name (Lao)",
+      "registrationNo": "Enterprise registration number",
+      "registrationDate": "Registration date",
+      "taxId": "Tax ID (TIN)",
+      "country": "Country of registration",
+      "province": "Province",
+      "phone": "Business phone",
+      "address": "Registered address",
+      "activity": "Business activity",
+      "activityPh": "e.g. Retail of cars and motorbikes",
+      "email": "Business email",
+      "website": "Website"
+    },
+    "companyType": {
+      "sole_enterprise": "Sole enterprise",
+      "sole_company": "Sole limited company",
+      "limited_company": "Limited company",
+      "public_company": "Public company",
+      "partnership": "Partnership",
+      "state_enterprise": "State enterprise",
+      "cooperative": "Cooperative",
+      "foreign_branch": "Branch / representative office of a foreign company",
+      "other": "Other"
+    },
+    "people": {
+      "title": "Representative, directors & owners",
+      "hint": "Add the legal representative (the person who signs for the business) and its directors.",
+      "hintShareholders": "Add the legal representative, the directors, and every beneficial owner who holds 25% or more of the shares.",
+      "person": "Person {n}",
+      "fullName": "Full name (as on ID)",
+      "position": "Position",
+      "nationality": "Nationality",
+      "dob": "Date of birth",
+      "idType": "ID document",
+      "idNumber": "ID / passport number",
+      "ownership": "Ownership (%)",
+      "add": "Add person",
+      "ownershipTotal": "Declared ownership: {pct}%",
+      "pep": "Politically exposed person (PEP)",
+      "pepHint": "Tick if this person holds, or held in the last year, a senior public position (or is a close family member of someone who does)."
+    },
+    "role": {
+      "representative": "Legal representative",
+      "director": "Director",
+      "ubo": "Beneficial owner"
+    },
+    "idType": {
+      "national_id": "National ID card",
+      "passport": "Passport",
+      "family_book": "Family book",
+      "other": "Other"
+    },
+    "bank": {
+      "title": "Payout bank account",
+      "hint": "Where zaokaiy and couriers send your money (COD remittances, commissions).",
+      "bank": "Bank",
+      "holder": "Account name",
+      "number": "Account number",
+      "nameMatch": "The account must be in the company's registered name."
+    },
+    "docs": {
+      "title": "Documents",
+      "hint": "Clear photos or scans (JPG, PNG, WebP or PDF, up to {mb} MB each). All four corners visible, no glare.",
+      "required": "Required",
+      "upload": "Upload",
+      "uploading": "Uploading…",
+      "uploadFor": "Upload {doc}",
+      "expiry": "Expiry date (if any)",
+      "expires": "expires {date}",
+      "tooBig": "The file is larger than {mb} MB.",
+      "openNew": "Open in new tab"
+    },
+    "doc": {
+      "registration_certificate": "Enterprise registration certificate",
+      "tax_certificate": "Tax registration certificate",
+      "business_license": "Business / operating licence",
+      "representative_id": "Representative's ID or passport",
+      "authorization_letter": "Letter of authorisation",
+      "shareholder_register": "Shareholder register",
+      "articles": "Articles of association",
+      "proof_of_address": "Proof of business address",
+      "bank_proof": "Bank account proof",
+      "other": "Other document"
+    },
+    "docHint": {
+      "registration_certificate": "Issued by the Ministry of Industry and Commerce (or your country's company registry).",
+      "tax_certificate": "Showing your Tax ID (TIN).",
+      "business_license": "Required for regulated trades, e.g. vehicle dealers, food, pharmacy.",
+      "representative_id": "Front and back of the ID card, or the passport photo page.",
+      "authorization_letter": "Needed when the legal representative is not a director: signed and stamped by a director.",
+      "shareholder_register": "Current list of shareholders and their percentages.",
+      "articles": "Company statutes / articles of association.",
+      "proof_of_address": "Utility bill, lease or official letter showing the business address, less than 3 months old.",
+      "bank_proof": "Bank statement or account book page showing the account name and number.",
+      "other": "Anything else that helps us verify your business."
+    },
+    "docStatus": {
+      "pending": "Waiting for review",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "missing": {
+      "company": "Company details",
+      "company_type": "Company type",
+      "legal_name": "Registered name",
+      "registration_no": "Registration number",
+      "tax_id": "Tax ID",
+      "registered_address": "Registered address",
+      "business_activity": "Business activity",
+      "contact_phone": "Business phone",
+      "bank_name": "Bank",
+      "bank_account_name": "Bank account name",
+      "bank_account_number": "Bank account number",
+      "representative": "A legal representative",
+      "one_representative": "Only one legal representative",
+      "person_id_number": "ID number for every person",
+      "ubo": "At least one beneficial owner",
+      "ownership_total": "Ownership adds up to more than 100%",
+      "doc": "Document: {doc}"
+    },
+    "event": {
+      "saved": "Saved",
+      "submitted": "Submitted for review",
+      "document_uploaded": "Document uploaded",
+      "document_deleted": "Document deleted",
+      "document_viewed": "Document viewed by reviewer",
+      "viewed": "Opened by reviewer",
+      "approved": "Verified",
+      "changes_requested": "Changes requested",
+      "rejected": "Rejected",
+      "revoked": "Verification revoked"
+    },
+    "flag": {
+      "pep": "Politically exposed person",
+      "duplicate_registration": "Registration number used by another account",
+      "foreign_person": "Foreign representative / owner",
+      "document_expiring": "Document expires within 30 days",
+      "low_ownership_declared": "Less than 25% ownership declared"
+    },
+    "countries": {
+      "LA": "Laos",
+      "TH": "Thailand",
+      "VN": "Vietnam",
+      "CN": "China",
+      "KH": "Cambodia",
+      "MM": "Myanmar",
+      "KR": "South Korea",
+      "JP": "Japan",
+      "SG": "Singapore",
+      "MY": "Malaysia",
+      "US": "United States",
+      "FR": "France"
+    },
+    "admin": {
+      "nav": "KYC",
+      "title": "Business verification",
+      "subtitle": "Review company registrations, owners and payout accounts of business shops.",
+      "search": "Company, shop or registration no.",
+      "company": "Company",
+      "flags": "Risk flags",
+      "submitted": "Submitted",
+      "docs": "{n} documents",
+      "empty": "Nothing in this queue",
+      "reviewOverdue": "Review overdue",
+      "reveal": "Show full ID and account numbers",
+      "roles": "Roles",
+      "incomplete": "{n} required item(s) missing — request changes rather than approve.",
+      "nameMismatch": "Account name doesn't seem to match the registered name.",
+      "docReason": "Why is it rejected? (shown to the seller)",
+      "decision": "Decision",
+      "notePh": "Note to the seller (required to request changes, reject or revoke)",
+      "approve": "Approve & verify",
+      "requestChanges": "Request changes",
+      "reject": "Reject",
+      "revoke": "Revoke verification",
+      "notSubmitted": "Decisions are possible once the seller submits.",
+      "decisionHint": "Document decisions above are saved with your decision. Every view and decision is logged.",
+      "done": {
+        "approve": "Verified.",
+        "request_changes": "Changes requested.",
+        "reject": "Rejected.",
+        "revoke": "Verification revoked; the shop's products are off sale."
+      }
+    }
+  }
+}

@@ -45,19 +45,99 @@ function resetSearch() {
   })
 }
 
-/** Enter in the search box: scanner or typed code. */
+// ---------------------------------------------------------------- barcode scanning
+const { beep, enabled: scanSound } = useScanSound()
+/** "3*8851234000012", "3x…" or "3×…" = add 3 at once. */
+const QTY_RE = /^(\d{1,4})\s*[*xX×]\s*(\S.*)$/
+const looksLikeCode = (s: string) => /^[0-9A-Za-z\-_.]{6,}$/.test(s) && /\d/.test(s)
+const lastAdded = ref<{ id: string; at: number } | null>(null)
+const lastScan = ref<{ code: string; ok: boolean; name?: string } | null>(null)
+const camera = ref(false)
+
+function splitQty(raw: string): { code: string; qty: number } {
+  const m = QTY_RE.exec(raw.trim())
+  return m ? { code: m[2]!.trim(), qty: Math.min(Math.max(Number(m[1]), 1), 9999) } : { code: raw.trim(), qty: 1 }
+}
+
+/** Exact lookup (barcode in any GTIN length, or SKU). Returns true when a product was added. */
+async function scanCode(code: string, qty: number): Promise<boolean | 'error'> {
+  try {
+    const r = await api<{ code: string; product: Hit | null }>(`/shops/${shopId.value}/pos/scan`, { query: { code } })
+    if (!r.product) return false
+    add(r.product, qty)
+    beep(true)
+    const mark = { id: r.product.id, at: Date.now() }
+    lastAdded.value = mark
+    setTimeout(() => { if (lastAdded.value === mark) lastAdded.value = null }, 1200)
+    lastScan.value = { code: r.code, ok: true, name: r.product.name }
+    flash(qty > 1 ? t('pos.scan.addedQty', { qty, name: r.product.name }) : t('pos.scan.added', { name: r.product.name }))
+    return true
+  } catch (e) {
+    beep(false)
+    flash(apiError(e), true)
+    return 'error'
+  }
+}
+
+/** A code from a hardware scanner (anywhere on the page) or the camera. */
+async function onScanned(raw: string) {
+  const { code, qty } = splitQty(raw)
+  if (!code || !shopId.value) return
+  const r = await scanCode(code, qty)
+  if (r === false) unknownCode(code, qty)
+}
+useBarcodeScanner(onScanned, { enabled: computed(() => !paying.value && !done.value && !unknown.open && !invForm.open && !custom.open) })
+
+/** Enter in the search box: a scanned/typed code, or pick the single search result. */
 async function onEnter() {
-  const code = q.value.trim()
+  const { code, qty } = splitQty(q.value)
   if (!code) return
   clearTimeout(timer)
+  const r = await scanCode(code, qty)
+  if (r === true) return resetSearch()
+  if (r === 'error') return
+  q.value = code
   await search()
-  const exact = hits.value.find((h) => h.exact)
-  const pick = exact ?? (hits.value.length === 1 ? hits.value[0] : undefined)
-  if (pick) {
-    add(pick)
+  if (hits.value.length === 1) {
+    add(hits.value[0]!, qty)
+    beep(true)
+    resetSearch()
+  } else if (looksLikeCode(code)) {
+    unknownCode(code, qty)
     resetSearch()
   } else {
     flash(t('pos.noMatch', { code }), true)
+  }
+}
+
+// Unknown barcode: assign it to an existing product right here (then it scans next time).
+const unknown = reactive({ open: false, code: '', qty: 1, q: '', results: [] as Hit[], busy: false, error: '' })
+function unknownCode(code: string, qty: number) {
+  beep(false)
+  lastScan.value = { code, ok: false }
+  Object.assign(unknown, { open: true, code, qty, q: '', results: [], error: '' })
+}
+let unknownTimer: ReturnType<typeof setTimeout> | undefined
+watch(() => unknown.q, (v) => {
+  clearTimeout(unknownTimer)
+  unknownTimer = setTimeout(async () => {
+    if (!v.trim()) return (unknown.results = [])
+    unknown.results = await api<Hit[]>(`/shops/${shopId.value}/pos/products`, { query: { q: v.trim(), limit: 8 } }).catch(() => [])
+  }, 200)
+})
+async function assignBarcode(h: Hit) {
+  unknown.busy = true
+  unknown.error = ''
+  try {
+    await api(`/products/${h.id}`, { method: 'PATCH', body: { barcode: unknown.code } })
+    add({ ...h, barcode: unknown.code }, unknown.qty)
+    beep(true)
+    flash(t('pos.scan.assigned', { code: unknown.code, name: h.name }))
+    unknown.open = false
+  } catch (e) {
+    unknown.error = apiError(e)
+  } finally {
+    unknown.busy = false
   }
 }
 
@@ -85,10 +165,10 @@ watch([lines, billDiscount], () => {
   } catch {}
 }, { deep: true })
 
-function add(h: Hit) {
+function add(h: Hit, qty = 1) {
   const existing = lines.value.find((l) => l.product_id === h.id && l.unit === h.price_cents && !l.discount)
-  if (existing) existing.qty++
-  else lines.value.push({ key: crypto.randomUUID(), product_id: h.id, name: h.name, sku: h.sku, unit: h.price_cents, base: h.price_cents, qty: 1, discount: 0, stock: h.stock })
+  if (existing) existing.qty = Math.min(existing.qty + qty, 10000)
+  else lines.value.push({ key: crypto.randomUUID(), product_id: h.id, name: h.name, sku: h.sku, unit: h.price_cents, base: h.price_cents, qty, discount: 0, stock: h.stock })
   const qtyInCart = lines.value.filter((l) => l.product_id === h.id).reduce((n, l) => n + l.qty, 0)
   if (qtyInCart > h.stock) flash(t('pos.onlyInStock', { n: h.stock, name: h.name }), true)
   nextTick(() => document.getElementById('cart-end')?.scrollIntoView({ block: 'nearest' }))
@@ -261,6 +341,8 @@ function onKey(e: KeyboardEvent) {
   else if (e.key === 'F9') { e.preventDefault(); if (!paying.value && !done.value) openPay(); else if (paying.value) complete() }
   else if (e.key === 'Escape') {
     if (invForm.open) invForm.open = false
+    else if (unknown.open) unknown.open = false
+    else if (camera.value) camera.value = false
     else if (paying.value) paying.value = false
     else if (done.value) newSale()
   } else if (paying.value && e.altKey && /^[1-5]$/.test(e.key)) {
@@ -275,8 +357,8 @@ const methodLabel = (m: string) => (methods.some((x) => x.id === m) ? t(`common.
 <template>
   <div class="flex h-full flex-col">
     <!-- Top bar -->
-    <header class="flex h-14 shrink-0 items-center gap-4 border-b border-line bg-white px-4">
-      <NuxtLink to="/dashboard" class="btn-ghost btn-sm">{{ $t('pos.toDashboard') }}</NuxtLink>
+    <header class="flex h-14 shrink-0 items-center gap-4 border-b border-line bg-surface px-4">
+      <UButton color="neutral" variant="soft" size="sm" to="/dashboard">{{ $t('pos.toDashboard') }}</UButton>
       <div class="flex items-center gap-2 font-extrabold">
         <span class="grid size-7 place-items-center rounded-lg bg-brand-500 text-sm text-white">Z</span> POS
       </div>
@@ -306,10 +388,17 @@ const methodLabel = (m: string) => (methods.some((x) => x.id === m) ? t(`common.
               :placeholder="$t('pos.searchPlaceholder')"
               :aria-label="$t('pos.searchAria')"
             >
+            <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-ink px-3 py-2 text-xs font-bold text-paper hover:bg-night/85" :title="$t('pos.scan.camera')" @click="camera = true">📷 {{ $t('pos.scan.cameraShort') }}</button>
           </form>
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+            <span class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full bg-mint-500" />{{ $t('pos.scan.ready') }}</span>
+            <span v-if="lastScan" class="font-mono" :class="lastScan.ok ? 'text-ink' : 'text-brand-700'">{{ lastScan.ok ? '✓' : '✕' }} {{ lastScan.code }}<span v-if="lastScan.name" class="font-sans"> · {{ lastScan.name }}</span></span>
+            <span class="hidden md:inline">{{ $t('pos.scan.qtyHint') }}</span>
+            <label class="ml-auto inline-flex cursor-pointer items-center gap-1"><input v-model="scanSound" type="checkbox" class="size-3.5 accent-brand-500">{{ $t('pos.scan.sound') }}</label>
+          </div>
           <div v-if="shopCats.length" class="flex gap-2 overflow-x-auto pb-1">
-            <button class="chip shrink-0 border px-3 py-1.5" :class="!cat ? 'border-ink bg-ink text-white' : 'border-line bg-white'" @click="cat = null">{{ $t('common.all') }}</button>
-            <button v-for="c in shopCats.filter((c) => c.depth === 0)" :key="c.id" class="chip shrink-0 border px-3 py-1.5" :class="cat === c.id ? 'border-ink bg-ink text-white' : 'border-line bg-white'" @click="cat = c.id">{{ c.name }}</button>
+            <button class="chip shrink-0 border px-3 py-1.5" :class="!cat ? 'border-brand-500 bg-brand-500 text-white shadow-[0_6px_16px_-8px_var(--brand-500)]' : 'border-transparent bg-surface shadow-card hover:text-brand-500'" @click="cat = null">{{ $t('common.all') }}</button>
+            <button v-for="c in shopCats.filter((c) => c.depth === 0)" :key="c.id" class="chip shrink-0 border px-3 py-1.5" :class="cat === c.id ? 'border-brand-500 bg-brand-500 text-white shadow-[0_6px_16px_-8px_var(--brand-500)]' : 'border-transparent bg-surface shadow-card hover:text-brand-500'" @click="cat = c.id">{{ c.name }}</button>
           </div>
         </div>
         <div class="min-h-0 flex-1 overflow-y-auto p-4">
@@ -336,18 +425,18 @@ const methodLabel = (m: string) => (methods.some((x) => x.id === m) ? t(`common.
       </section>
 
       <!-- Cart -->
-      <aside class="flex w-[400px] shrink-0 flex-col border-l border-line bg-white xl:w-[440px]">
+      <aside class="flex w-[400px] shrink-0 flex-col border-l border-line bg-surface xl:w-[440px]">
         <div class="flex items-center justify-between border-b border-line px-4 py-3">
           <div class="font-bold">{{ $t('pos.currentSale') }} <span class="font-normal text-muted">· {{ $t('common.items', units) }}</span></div>
           <div class="flex gap-1">
-            <button class="btn-ghost btn-sm" @click="custom.open = !custom.open">{{ $t('pos.addCustom') }}</button>
-            <button v-if="lines.length" class="btn-ghost btn-sm text-brand-700" @click="clearSale">{{ $t('pos.clear') }}</button>
+            <UButton color="neutral" variant="soft" size="sm" type="submit" @click="custom.open = !custom.open">{{ $t('pos.addCustom') }}</UButton>
+            <UButton color="neutral" variant="soft" size="sm" type="submit" v-if="lines.length" class="text-brand-700" @click="clearSale">{{ $t('pos.clear') }}</UButton>
           </div>
         </div>
         <form v-if="custom.open" class="flex gap-2 border-b border-line bg-paper p-3" @submit.prevent="addCustom">
-          <input v-model="custom.name" class="input py-2" :placeholder="$t('pos.itemName')" autofocus >
-          <input v-model="custom.price" type="number" step="0.01" min="0" class="input w-28 py-2" :placeholder="$t('common.price')" >
-          <button class="btn-dark btn-sm">{{ $t('common.add') }}</button>
+          <UInput v-model="custom.name" :placeholder="$t('pos.itemName')" autofocus />
+          <UInput v-model.number="custom.price" type="number" step="0.01" min="0" class="w-28" :placeholder="$t('common.price')" />
+          <UButton color="neutral" size="sm" type="submit">{{ $t('common.add') }}</UButton>
         </form>
 
         <div class="min-h-0 flex-1 overflow-y-auto">
@@ -355,7 +444,7 @@ const methodLabel = (m: string) => (methods.some((x) => x.id === m) ? t(`common.
             <div><div class="mb-2 text-3xl">🧾</div>{{ $t('pos.emptyCart') }}</div>
           </div>
           <ul v-else class="divide-y divide-line/70">
-            <li v-for="l in lines" :key="l.key" class="px-4 py-3">
+            <li v-for="l in lines" :key="l.key" class="px-4 py-3 transition-colors duration-700" :class="lastAdded?.id === l.product_id && 'bg-mint-500/15'">
               <div class="flex items-start gap-3">
                 <button class="min-w-0 flex-1 text-left" @click="expanded = expanded === l.key ? null : l.key">
                   <div class="truncate font-semibold">{{ l.name }}</div>
@@ -373,9 +462,9 @@ const methodLabel = (m: string) => (methods.some((x) => x.id === m) ? t(`common.
                 <div class="w-20 text-right font-bold tabular-nums">{{ money(lineTotal(l), cur) }}</div>
               </div>
               <div v-if="expanded === l.key" class="mt-2 grid grid-cols-3 gap-2 rounded-xl bg-paper p-2 text-xs">
-                <label>{{ $t('pos.unitPrice') }}<input :value="l.unit / 100" type="number" step="0.01" min="0" class="input mt-1 py-1.5" @change="l.unit = toCents(($event.target as HTMLInputElement).value)"></label>
-                <label>{{ $t('common.discount') }}<input :value="l.discount / 100" type="number" step="0.01" min="0" class="input mt-1 py-1.5" @change="l.discount = Math.min(l.unit * l.qty, toCents(($event.target as HTMLInputElement).value))"></label>
-                <div class="flex items-end"><button class="btn-ghost btn-sm w-full text-brand-700" @click="setQty(l, 0)">{{ $t('common.remove') }}</button></div>
+                <label>{{ $t('pos.unitPrice') }}<UInput size="md" :model-value="l.unit / 100" type="number" step="0.01" min="0" class="mt-1" @change="l.unit = toCents(($event.target as HTMLInputElement).value)" /></label>
+                <label>{{ $t('common.discount') }}<UInput size="md" :model-value="l.discount / 100" type="number" step="0.01" min="0" class="mt-1" @change="l.discount = Math.min(l.unit * l.qty, toCents(($event.target as HTMLInputElement).value))" /></label>
+                <div class="flex items-end"><UButton color="neutral" variant="soft" size="sm" type="submit" class="w-full text-brand-700" @click="setQty(l, 0)">{{ $t('common.remove') }}</UButton></div>
               </div>
             </li>
             <li id="cart-end" />
@@ -389,16 +478,16 @@ const methodLabel = (m: string) => (methods.some((x) => x.id === m) ? t(`common.
             <div class="mt-3 space-y-2">
               <div class="flex gap-2">
                 <select v-model="discountMode" class="input w-24 py-2"><option value="amount">{{ cur }}</option><option value="percent">%</option></select>
-                <input v-model="discountInput" type="number" min="0" step="0.01" class="input py-2" :placeholder="$t('pos.billDiscount')" @change="applyBillDiscount" >
-                <button class="btn-ghost btn-sm" @click="applyBillDiscount">{{ $t('pos.apply') }}</button>
+                <UInput v-model.number="discountInput" type="number" min="0" step="0.01" :placeholder="$t('pos.billDiscount')" @change="applyBillDiscount" />
+                <UButton color="neutral" variant="soft" size="sm" type="submit" @click="applyBillDiscount">{{ $t('pos.apply') }}</UButton>
               </div>
-              <input v-model="customer.name" class="input py-2" :placeholder="$t('pos.customerName')" >
+              <UInput v-model="customer.name" :placeholder="$t('pos.customerName')" />
               <div class="flex gap-2">
-                <input v-model="customer.tax_id" class="input py-2" :placeholder="$t('pos.taxId')" >
-                <input v-model="customer.branch" class="input py-2" :placeholder="$t('pos.branch')" >
+                <UInput v-model="customer.tax_id" :placeholder="$t('pos.taxId')" />
+                <UInput v-model="customer.branch" :placeholder="$t('pos.branch')" />
               </div>
-              <textarea v-model="customer.address" rows="2" class="input py-2" :placeholder="$t('common.address')" />
-              <input v-model="note" class="input py-2" :placeholder="$t('pos.notePrinted')" >
+              <UTextarea v-model="customer.address" :rows="2" :placeholder="$t('common.address')" />
+              <UInput v-model="note" :placeholder="$t('pos.notePrinted')" />
             </div>
           </details>
           <dl class="space-y-1 text-sm">
@@ -406,15 +495,15 @@ const methodLabel = (m: string) => (methods.some((x) => x.id === m) ? t(`common.
             <div v-if="billDiscount" class="flex justify-between text-brand-700"><dt>{{ $t('common.discount') }} <button class="ml-1 text-xs underline" @click="billDiscount = 0; discountInput = ''">{{ $t('pos.removeDiscount') }}</button></dt><dd class="tabular-nums">−{{ money(billDiscount, cur) }}</dd></div>
             <div v-if="bps" class="flex justify-between text-muted"><dt>{{ $t('pos.vat', { rate: bps / 100 }) }} {{ inclusive ? $t('pos.vatIncluded') : '' }}</dt><dd class="tabular-nums">{{ money(vat, cur) }}</dd></div>
           </dl>
-          <button class="btn-primary w-full justify-between rounded-2xl px-5 py-4 text-lg" :disabled="!lines.length" @click="openPay">
+          <UButton type="submit" class="w-full justify-between rounded-2xl px-5 py-4 text-lg" :disabled="!lines.length" @click="openPay">
             <span>{{ $t('pos.charge') }} <span class="text-xs font-normal opacity-80">(F9)</span></span><span class="tabular-nums">{{ money(total, cur) }}</span>
-          </button>
+          </UButton>
         </div>
       </aside>
     </div>
 
     <!-- Payment -->
-    <div v-if="paying" class="fixed inset-0 z-50 grid place-items-center bg-ink/50 p-4" @click.self="paying = false">
+    <div v-if="paying" class="fixed inset-0 z-50 grid place-items-center bg-night/50 p-4" @click.self="paying = false">
       <div class="card w-full max-w-2xl overflow-hidden shadow-2xl" role="dialog" :aria-label="$t('pos.payment')">
         <div class="grid md:grid-cols-[1fr_260px]">
           <div class="space-y-4 p-6">
@@ -423,17 +512,17 @@ const methodLabel = (m: string) => (methods.some((x) => x.id === m) ? t(`common.
               <div class="text-3xl font-extrabold tabular-nums">{{ money(total, cur) }}</div>
             </div>
             <div class="grid grid-cols-5 gap-1.5">
-              <button v-for="m in methods" :key="m.id" class="rounded-xl border-2 px-2 py-2.5 text-xs font-bold" :class="method === m.id ? 'border-ink bg-ink text-white' : 'border-line'" :title="`Alt+${m.key}`" @click="method = m.id">{{ $t(`common.pay.${m.id}`) }}</button>
+              <button v-for="m in methods" :key="m.id" class="rounded-xl border-2 px-2 py-2.5 text-xs font-bold" :class="method === m.id ? 'border-brand-500 bg-brand-500 text-white shadow-[0_6px_16px_-8px_var(--brand-500)]' : 'border-transparent bg-surface shadow-card hover:text-brand-500'" :title="`Alt+${m.key}`" @click="method = m.id">{{ $t(`common.pay.${m.id}`) }}</button>
             </div>
             <form class="space-y-2" @submit.prevent="remaining > 0 ? addPayment() : complete()">
               <div class="flex gap-2">
-                <input id="pay-amount" v-model="amount" type="number" min="0" step="0.01" class="input py-3 text-lg tabular-nums" :placeholder="$t('pos.exactHint', { amount: (remaining / 100).toFixed(2) })" >
-                <button type="button" class="btn-dark" :disabled="remaining <= 0" @click="addPayment()">{{ $t('common.add') }}</button>
+                <UInput id="pay-amount" v-model.number="amount" type="number" min="0" step="0.01" class="py-3 text-lg tabular-nums" :placeholder="$t('pos.exactHint', { amount: (remaining / 100).toFixed(2) })" />
+                <UButton color="neutral" type="button" :disabled="remaining <= 0" @click="addPayment()">{{ $t('common.add') }}</UButton>
               </div>
-              <input v-if="method !== 'cash'" v-model="reference" class="input py-2" :placeholder="$t('pos.reference')" >
+              <UInput v-if="method !== 'cash'" v-model="reference" :placeholder="$t('pos.reference')" />
             </form>
             <div v-if="method === 'cash' && remaining > 0" class="flex flex-wrap gap-2">
-              <button v-for="v in quickCash" :key="v" class="btn-ghost btn-sm tabular-nums" @click="addPayment(v)">{{ money(v * 100, cur) }}</button>
+              <UButton color="neutral" variant="soft" size="sm" type="submit" v-for="v in quickCash" :key="v" class="tabular-nums" @click="addPayment(v)">{{ money(v * 100, cur) }}</UButton>
             </div>
             <label class="flex items-center gap-2 text-sm">
               <input v-model="issueInvoice" type="checkbox" class="size-4 accent-brand-500" :disabled="!customer.name || !customer.address">
@@ -456,17 +545,17 @@ const methodLabel = (m: string) => (methods.some((x) => x.id === m) ? t(`common.
               <div class="flex justify-between font-bold" :class="remaining ? 'text-brand-700' : ''"><dt>{{ $t('pos.remaining') }}</dt><dd class="tabular-nums">{{ money(remaining, cur) }}</dd></div>
               <div class="flex justify-between text-lg font-extrabold text-mint-500"><dt>{{ $t('pos.change') }}</dt><dd class="tabular-nums">{{ money(change, cur) }}</dd></div>
             </dl>
-            <button class="btn-primary mt-4 w-full py-3" :disabled="busy" @click="complete">
+            <UButton type="submit" class="mt-4 w-full py-3" :disabled="busy" @click="complete">
               {{ busy ? $t('common.saving') : remaining > 0 ? $t('pos.payAndFinish', { amount: money(remaining, cur) }) : $t('pos.completeSale') }}
-            </button>
-            <button class="btn-ghost btn-sm mt-2" @click="paying = false">{{ $t('pos.backEsc') }}</button>
+            </UButton>
+            <UButton color="neutral" variant="soft" size="sm" type="submit" class="mt-2" @click="paying = false">{{ $t('pos.backEsc') }}</UButton>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Done -->
-    <div v-if="done" class="fixed inset-0 z-50 grid place-items-center bg-ink/50 p-4">
+    <div v-if="done" class="fixed inset-0 z-50 grid place-items-center bg-night/50 p-4">
       <div class="card w-full max-w-md p-6 text-center shadow-2xl" role="dialog" :aria-label="$t('pos.saleComplete')">
         <div class="mx-auto grid size-14 place-items-center rounded-full bg-mint-500/15 text-2xl text-mint-500">✓</div>
         <div class="mt-3 text-sm text-muted">{{ $t('pos.saleLine', { number: done.sale.number, amount: money(done.sale.total_cents, done.sale.currency) }) }}</div>
@@ -475,36 +564,69 @@ const methodLabel = (m: string) => (methods.some((x) => x.id === m) ? t(`common.
 
         <div class="mt-6 grid gap-2">
           <div class="flex gap-2">
-            <button class="btn-dark flex-1" @click="print(`/print/receipt/${done.sale.id}?w=${paperWidth}`)">{{ $t('pos.printReceipt') }}</button>
+            <UButton color="neutral" type="submit" class="flex-1" @click="print(`/print/receipt/${done.sale.id}?w=${paperWidth}`)">{{ $t('pos.printReceipt') }}</UButton>
             <select v-model="paperWidth" class="input w-24 py-2" :aria-label="$t('pos.paperWidth')"><option value="80">80 mm</option><option value="58">58 mm</option></select>
           </div>
-          <button v-if="done.sale.invoice_number" class="btn-ghost" @click="print(`/print/invoice/${done.sale.id}`)">{{ $t('pos.printTaxInvoice', { number: done.sale.invoice_number }) }}</button>
-          <button v-else class="btn-ghost" @click="Object.assign(invForm, { open: true, error: '' })">{{ $t('pos.issueTaxInvoice') }}</button>
-          <button class="btn-primary" @click="newSale">{{ $t('pos.newSale') }}</button>
+          <UButton color="neutral" variant="soft" type="submit" v-if="done.sale.invoice_number" @click="print(`/print/invoice/${done.sale.id}`)">{{ $t('pos.printTaxInvoice', { number: done.sale.invoice_number }) }}</UButton>
+          <UButton color="neutral" variant="soft" type="submit" v-else @click="Object.assign(invForm, { open: true, error: '' })">{{ $t('pos.issueTaxInvoice') }}</UButton>
+          <UButton type="submit" @click="newSale">{{ $t('pos.newSale') }}</UButton>
         </div>
       </div>
     </div>
 
     <!-- Invoice form -->
-    <div v-if="invForm.open" class="fixed inset-0 z-[60] grid place-items-center bg-ink/50 p-4" @click.self="invForm.open = false">
+    <div v-if="invForm.open" class="fixed inset-0 z-[60] grid place-items-center bg-night/50 p-4" @click.self="invForm.open = false">
       <form class="card w-full max-w-md space-y-3 p-6 shadow-2xl" @submit.prevent="issueInvoiceNow">
         <div class="text-lg font-bold">{{ $t('pos.fullTaxInvoice') }}</div>
         <p class="text-xs text-muted">{{ $t('pos.invoicePermanent') }}</p>
-        <input v-model="invForm.name" required class="input" :placeholder="$t('pos.customerNameReq')" autofocus >
+        <UInput v-model="invForm.name" required :placeholder="$t('pos.customerNameReq')" autofocus />
         <div class="flex gap-2">
-          <input v-model="invForm.tax_id" class="input" :placeholder="$t('pos.taxIdHint')" >
-          <input v-model="invForm.branch" class="input" :placeholder="$t('pos.branchHint')" >
+          <UInput v-model="invForm.tax_id" :placeholder="$t('pos.taxIdHint')" />
+          <UInput v-model="invForm.branch" :placeholder="$t('pos.branchHint')" />
         </div>
-        <textarea v-model="invForm.address" required rows="3" class="input" :placeholder="$t('pos.addressReq')" />
-        <input v-model="invForm.phone" class="input" :placeholder="$t('common.phone')" >
+        <UTextarea v-model="invForm.address" required :rows="3" :placeholder="$t('pos.addressReq')" />
+        <UInput v-model="invForm.phone" :placeholder="$t('common.phone')" />
         <p v-if="invForm.error" class="text-sm text-brand-700">{{ invForm.error }}</p>
         <div class="flex justify-end gap-2">
-          <button type="button" class="btn-ghost" @click="invForm.open = false">{{ $t('common.cancel') }}</button>
-          <button class="btn-primary">{{ $t('pos.issuePrint') }}</button>
+          <UButton color="neutral" variant="soft" type="button" @click="invForm.open = false">{{ $t('common.cancel') }}</UButton>
+          <UButton type="submit">{{ $t('pos.issuePrint') }}</UButton>
         </div>
       </form>
     </div>
 
-    <div v-if="toast" class="fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-lg" :class="toast.bad ? 'bg-brand-700' : 'bg-ink'">{{ toast.msg }}</div>
+    <!-- Camera scanner -->
+    <BarcodeCameraScanner v-if="camera" @detected="onScanned" @close="camera = false" />
+
+    <!-- Unknown barcode -->
+    <div v-if="unknown.open" class="fixed inset-0 z-[60] grid place-items-center bg-night/50 p-4" @click.self="unknown.open = false">
+      <div class="card w-full max-w-md space-y-3 p-5" role="dialog" :aria-label="$t('pos.scan.unknownTitle')">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="font-extrabold">{{ $t('pos.scan.unknownTitle') }}</div>
+            <div class="font-mono text-lg">{{ unknown.code }}<span v-if="unknown.qty > 1" class="font-sans text-sm text-muted"> × {{ unknown.qty }}</span></div>
+          </div>
+          <button class="text-muted hover:text-ink" :aria-label="$t('common.close')" @click="unknown.open = false">✕</button>
+        </div>
+        <p class="text-sm text-muted">{{ $t('pos.scan.unknownHint') }}</p>
+        <UInput v-model="unknown.q" :placeholder="$t('pos.scan.findProduct')" autofocus />
+        <ul v-if="unknown.results.length" class="max-h-64 divide-y divide-line/70 overflow-y-auto rounded-xl border border-line">
+          <li v-for="h in unknown.results" :key="h.id" class="flex items-center gap-3 p-2">
+            <ProductThumb :src="h.image" :name="h.name" sizes="40px" class="size-10 shrink-0" rounded="rounded-lg" />
+            <div class="min-w-0 flex-1">
+              <div class="truncate text-sm font-semibold">{{ h.name }}</div>
+              <div class="text-xs text-muted">{{ h.sku }}<span v-if="h.barcode"> · {{ $t('pos.scan.hasBarcode', { code: h.barcode }) }}</span></div>
+            </div>
+            <UButton color="neutral" size="sm" type="submit" :disabled="unknown.busy" @click="assignBarcode(h)">{{ h.barcode ? $t('pos.scan.replace') : $t('pos.scan.assign') }}</UButton>
+          </li>
+        </ul>
+        <p v-if="unknown.error" class="text-sm text-brand-700">{{ unknown.error }}</p>
+        <div class="flex justify-between gap-2 pt-1">
+          <UButton color="neutral" variant="soft" size="sm" :to="`/dashboard/products/new?barcode=${encodeURIComponent(unknown.code)}`" target="_blank">{{ $t('pos.scan.createProduct') }}</UButton>
+          <UButton color="neutral" variant="soft" size="sm" type="submit" @click="unknown.open = false">{{ $t('common.cancel') }}</UButton>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="toast" class="fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-lg" :class="toast.bad ? 'bg-brand-700' : 'bg-night'">{{ toast.msg }}</div>
   </div>
 </template>

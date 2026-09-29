@@ -62,7 +62,7 @@ function applyPreset(lang: keyof typeof PRESETS) {
           <label class="label">{{ $t('social.settings.triggerWords') }}</label>
           <div class="flex flex-wrap items-center gap-2">
             <span v-for="(t, i) in f.triggers" :key="t" class="chip border border-line bg-paper px-2.5 py-1 font-mono text-xs">{{ t }} <button type="button" class="ml-1 text-muted hover:text-brand-700" :aria-label="$t('social.settings.removeWord', { word: t })" @click="f.triggers.splice(i, 1)">✕</button></span>
-            <input v-model="newTrigger" class="input w-36 py-1.5" :placeholder="$t('social.settings.addWord')" @keydown.enter.prevent="addTrigger" >
+            <UInput size="md" v-model="newTrigger" class="w-36" :placeholder="$t('social.settings.addWord')" @keydown.enter.prevent="addTrigger" />
           </div>
           <p class="mt-2 text-xs text-muted">{{ $t('social.settings.understood') }} <span v-for="e in examples" :key="e" class="mr-1 inline-block rounded bg-paper px-1.5 font-mono">{{ e }}</span></p>
         </div>
@@ -71,9 +71,9 @@ function applyPreset(lang: keyof typeof PRESETS) {
           <span>{{ $t('social.settings.requireTrigger') }} <span class="block text-xs text-muted">{{ $t('social.settings.requireTriggerHint', { example: 'A01 2', question: $t('social.settings.questionExample') }) }}</span></span>
         </label>
         <div class="grid gap-3 sm:grid-cols-3">
-          <div><label class="label">{{ $t('social.settings.holdHours') }}</label><input v-model.number="f.hold_hours" type="number" min="1" max="336" class="input" ></div>
-          <div><label class="label">{{ $t('social.settings.maxQty') }}</label><input v-model.number="f.max_qty" type="number" min="1" max="999" class="input" ></div>
-          <div><label class="label">{{ $t('social.settings.shippingFee', { cur }) }}</label><input v-model="f.shipping" type="number" min="0" step="0.01" class="input" ></div>
+          <div><label class="label">{{ $t('social.settings.holdHours') }}</label><UInput v-model.number="f.hold_hours" type="number" min="1" max="336" /></div>
+          <div><label class="label">{{ $t('social.settings.maxQty') }}</label><UInput v-model.number="f.max_qty" type="number" min="1" max="999" /></div>
+          <div><label class="label">{{ $t('social.settings.shippingFee', { cur }) }}</label><UInput v-model.number="f.shipping" type="number" min="0" step="0.01" /></div>
         </div>
       </div>
 
@@ -82,28 +82,28 @@ function applyPreset(lang: keyof typeof PRESETS) {
         <p class="text-xs text-muted">{{ $t('social.settings.placeholders') }} <code>{name}</code> <code>{items}</code> <code>{total}</code> <code>{link}</code> <code>{hours}</code> <code>{order}</code></p>
         <div class="flex flex-wrap items-center gap-2 text-xs">
           <span class="text-muted">{{ $t('social.settings.presets') }}</span>
-          <button type="button" class="btn-ghost btn-sm" @click="applyPreset('lo')">{{ $t('social.settings.useLao') }}</button>
-          <button type="button" class="btn-ghost btn-sm" @click="applyPreset('th')">{{ $t('social.settings.useThai') }}</button>
-          <button type="button" class="btn-ghost btn-sm" @click="applyPreset('en')">{{ $t('social.settings.useEnglish') }}</button>
+          <UButton color="neutral" variant="soft" size="sm" type="button" @click="applyPreset('lo')">{{ $t('social.settings.useLao') }}</UButton>
+          <UButton color="neutral" variant="soft" size="sm" type="button" @click="applyPreset('th')">{{ $t('social.settings.useThai') }}</UButton>
+          <UButton color="neutral" variant="soft" size="sm" type="button" @click="applyPreset('en')">{{ $t('social.settings.useEnglish') }}</UButton>
         </div>
         <div>
           <label class="label">{{ $t('social.settings.whenReserved') }}</label>
-          <textarea v-model="f.reply_template" rows="3" class="input" />
+          <UTextarea v-model="f.reply_template" :rows="3" />
           <div class="mt-1 rounded-xl bg-paper p-2 text-xs"><b>{{ $t('social.settings.preview') }}</b> {{ fill(f.reply_template) }}</div>
         </div>
         <div>
           <label class="label">{{ $t('social.settings.whenSoldOut') }}</label>
-          <textarea v-model="f.soldout_template" rows="2" class="input" />
+          <UTextarea v-model="f.soldout_template" :rows="2" />
           <div class="mt-1 rounded-xl bg-paper p-2 text-xs"><b>{{ $t('social.settings.preview') }}</b> {{ fill(f.soldout_template) }}</div>
         </div>
         <div>
           <label class="label">{{ $t('social.settings.paymentInstructions') }}</label>
-          <textarea v-model="f.payment_instructions" rows="3" class="input" :placeholder="$t('social.settings.paymentPlaceholder')" />
+          <UTextarea v-model="f.payment_instructions" :rows="3" :placeholder="$t('social.settings.paymentPlaceholder')" />
         </div>
       </div>
       <p v-if="msg" class="text-sm text-mint-500">{{ msg }}</p>
       <p v-if="error" class="text-sm text-brand-700">{{ error }}</p>
-      <button class="btn-primary">{{ $t('social.settings.save') }}</button>
+      <UButton type="submit">{{ $t('social.settings.save') }}</UButton>
     </form>
   </div>
 </template>

@@ -28,7 +28,7 @@ async function submit() {
 }
 
 const tone = computed(() => ({
-  not_submitted: 'border-line bg-white',
+  not_submitted: 'border-line bg-surface',
   pending: 'border-sun-400/60 bg-sun-400/10',
   approved: 'border-mint-500/40 bg-mint-500/5',
   rejected: 'border-brand-500/40 bg-brand-50',
@@ -54,9 +54,9 @@ const actionLabel = (a: string) => (te(`product.review.actions.${a}`) ? t(`produ
         </template>
         <template v-else>{{ $t('product.review.notSubmitted') }}</template>
       </div>
-      <button v-if="product.review_status === 'not_submitted' || product.review_status === 'rejected'" type="button" class="btn-primary btn-sm" :disabled="busy" @click="submit">
+      <UButton size="sm" v-if="product.review_status === 'not_submitted' || product.review_status === 'rejected'" type="button" :disabled="busy" @click="submit">
         {{ product.review_status === 'rejected' ? $t('product.review.resubmit') : $t('product.review.submit') }}
-      </button>
+      </UButton>
       <button type="button" class="text-xs font-semibold text-muted underline hover:text-ink" @click="loadHistory">{{ showHistory ? $t('product.review.hide') : $t('product.review.history') }}</button>
     </div>
     <p v-if="error" class="mt-2 text-brand-700">{{ error }}</p>

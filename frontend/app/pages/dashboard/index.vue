@@ -28,10 +28,19 @@ const { data: stats } = await useAsyncData('stats', () => (shopId.value ? api<St
   watch: [shopId],
 })
 
-const form = reactive({ name: '', slug: '', kind: 'seller', description: '', currency: locale.value === 'lo' ? 'LAK' : 'THB' })
+const form = reactive({ name: '', slug: '', kind: 'seller', vertical: 'general', entity_type: 'individual', description: '', currency: locale.value === 'lo' ? 'LAK' : 'THB' })
+// Onboarding choice: seller · creator · vehicle dealer (= seller with the vehicle storefront).
+const choice = ref('seller')
+function pick(k: string) {
+  choice.value = k
+  form.kind = k === 'creator' ? 'creator' : 'seller'
+  form.vertical = k === 'vehicle' ? 'vehicle' : 'general'
+  if (k === 'vehicle') form.entity_type = 'business'
+}
 const kinds = computed(() => [
   ['seller', t('dash.open.seller'), t('dash.open.sellerHint')],
   ['creator', t('dash.open.creator'), t('dash.open.creatorHint')],
+  ['vehicle', t('vehicle.store.openVehicle'), t('vehicle.store.openVehicleHint')],
 ])
 const error = ref('')
 watch(() => form.name, (n) => {
@@ -41,6 +50,7 @@ async function create() {
   error.value = ''
   try {
     await createShop({ ...form } as never)
+    if (form.entity_type === 'business') await navigateTo('/dashboard/verification')
   } catch (e) {
     error.value = apiError(e)
   }
@@ -55,17 +65,21 @@ const ctr = computed(() => (stats.value?.ad_impressions ? ((stats.value.ad_click
       <h1 class="page-title text-3xl">{{ $t('dash.open.title') }}</h1>
       <p class="mt-1 text-muted">{{ $t('dash.open.subtitle') }}</p>
       <form class="card mt-8 space-y-4 p-6" @submit.prevent="create">
-        <div class="grid grid-cols-2 gap-3">
-          <button v-for="k in kinds" :key="k[0]" type="button" class="rounded-2xl border-2 p-4 text-left" :class="form.kind === k[0] ? 'border-ink bg-paper' : 'border-line'" @click="form.kind = k[0]!">
+        <div class="grid gap-3 sm:grid-cols-3">
+          <button v-for="k in kinds" :key="k[0]" type="button" class="rounded-2xl border-2 p-4 text-left" :class="choice === k[0] ? 'border-ink bg-paper' : 'border-line'" @click="pick(k[0]!)">
             <div class="font-bold">{{ k[1] }}</div><div class="text-xs text-muted">{{ k[2] }}</div>
           </button>
         </div>
-        <div><label class="label">{{ $t('dash.open.shopName') }}</label><input v-model="form.name" required class="input" ></div>
+        <label class="flex items-start gap-3 rounded-2xl border border-line p-4 text-sm">
+          <input v-model="form.entity_type" type="checkbox" true-value="business" false-value="individual" class="mt-0.5 size-5 accent-brand-500">
+          <span><b>{{ $t('kyb.entity.openLabel') }}</b><br><span class="text-muted">{{ $t('kyb.entity.openHint') }}</span></span>
+        </label>
+        <div><label class="label">{{ $t('dash.open.shopName') }}</label><UInput v-model="form.name" required /></div>
         <div>
           <label class="label">{{ $t('dash.open.shopUrl') }}</label>
-          <div class="flex items-center gap-2 text-sm"><span class="text-muted">zaokaiy/s/</span><input v-model="form.slug" required pattern="[a-z0-9-]{3,40}" class="input" ></div>
+          <div class="flex items-center gap-2 text-sm"><span class="text-muted">zaokaiy/s/</span><UInput v-model="form.slug" required pattern="[a-z0-9\-]{3,40}" /></div>
         </div>
-        <div><label class="label">{{ $t('dash.open.about') }}</label><textarea v-model="form.description" rows="3" class="input" /></div>
+        <div><label class="label">{{ $t('dash.open.about') }}</label><UTextarea v-model="form.description" :rows="3" /></div>
         <div>
           <label class="label">{{ $t('dash.settings.currency') }}</label>
           <select v-model="form.currency" class="input">
@@ -73,7 +87,7 @@ const ctr = computed(() => (stats.value?.ad_impressions ? ((stats.value.ad_click
           </select>
         </div>
         <p v-if="error" class="text-sm text-brand-700">{{ error }}</p>
-        <button class="btn-primary w-full">{{ $t('dash.open.create') }}</button>
+        <UButton type="submit" class="w-full">{{ $t('dash.open.create') }}</UButton>
       </form>
     </div>
 
@@ -84,8 +98,8 @@ const ctr = computed(() => (stats.value?.ad_impressions ? ((stats.value.ad_click
           <p class="text-sm text-muted">{{ $t('dash.overview.subtitle') }}</p>
         </div>
         <div class="flex gap-2">
-          <NuxtLink to="/dashboard/assistant" class="btn-ghost">{{ $t('dash.overview.askAi') }}</NuxtLink>
-          <NuxtLink to="/dashboard/products/new" class="btn-primary">{{ $t('dash.overview.newProduct') }}</NuxtLink>
+          <UButton color="neutral" variant="soft" to="/dashboard/assistant">{{ $t('dash.overview.askAi') }}</UButton>
+          <UButton to="/dashboard/products/new">{{ $t('dash.overview.newProduct') }}</UButton>
         </div>
       </div>
 

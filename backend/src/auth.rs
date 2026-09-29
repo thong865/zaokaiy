@@ -80,6 +80,13 @@ fn decode_user(state: &AppState, token: &str) -> Option<AuthUser> {
     })
 }
 
+/// The signed-in user if a valid `Authorization: Bearer` header is present (routes that work
+/// both signed in and out, e.g. connecting a login method vs. signing in).
+pub fn optional_user(state: &AppState, headers: &axum::http::HeaderMap) -> Option<AuthUser> {
+    let token = headers.get(axum::http::header::AUTHORIZATION)?.to_str().ok()?.strip_prefix("Bearer ")?;
+    decode_user(state, token)
+}
+
 impl FromRequestParts<AppState> for AuthUser {
     type Rejection = AppError;
 

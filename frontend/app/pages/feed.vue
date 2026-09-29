@@ -21,11 +21,11 @@ useHead({ title: () => t('common.nav.creators') + ' · zaokaiy' })
     <p class="mt-1 text-muted">{{ $t('store.feed.intro') }}</p>
     <div v-if="feed.length" class="mt-8 space-y-5">
       <article v-for="f in feed" :key="f.id" class="card overflow-hidden">
-        <video v-if="f.media_url && isVideoUrl(f.media_url)" :src="f.media_url" controls playsinline preload="metadata" class="aspect-video w-full bg-ink object-cover" />
+        <video v-if="f.media_url && isVideoUrl(f.media_url)" :src="f.media_url" controls playsinline preload="metadata" class="aspect-video w-full bg-night object-cover" />
         <img v-else-if="f.media_url" :src="f.media_url" class="aspect-video w-full object-cover" alt="" >
         <div class="p-5">
           <div class="flex items-center gap-2 text-sm">
-            <span class="grid size-8 place-items-center rounded-full bg-ink text-xs font-bold text-white">{{ f.shop.name.slice(0, 1) }}</span>
+            <span class="grid size-8 place-items-center rounded-full bg-ink text-xs font-bold text-paper">{{ f.shop.name.slice(0, 1) }}</span>
             <NuxtLink :to="`/s/${f.shop.slug}`" class="font-bold hover:underline">{{ f.shop.name }}</NuxtLink>
             <span class="text-muted">· {{ ago(f.created_at) }} · {{ kindLabel(f.kind) }}</span>
           </div>

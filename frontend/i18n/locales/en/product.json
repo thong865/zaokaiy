@@ -69,7 +69,11 @@
       "saveChanges": "Save changes",
       "publishBlocked": "Choose a marketplace category to publish, or save as draft.",
       "reviewLive": "These changes will be reviewed before they go live — the product is hidden until approved.",
-      "reviewNew": "Our team reviews new listings, usually within a day."
+      "reviewNew": "Our team reviews new listings, usually within a day.",
+      "barcodeValid": "Valid EAN/UPC barcode",
+      "barcodeBadCheck": "Check digit is wrong — the last digit should be {digit}",
+      "barcodeInternal": "In-store code (printed as Code 128)",
+      "barcodeGenerate": "Generate"
     },
     "review": {
       "pendingTitle": "Waiting for marketplace review.",

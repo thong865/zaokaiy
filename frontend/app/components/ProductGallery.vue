@@ -34,15 +34,28 @@ function onTouchEnd(e: TouchEvent) {
           :poster="current.thumb_url ?? undefined"
           controls
           playsinline
-          class="size-full bg-ink object-contain"
+          class="size-full bg-night object-contain"
         />
-        <img v-else :key="current.id" :src="current.url" :alt="current.alt || name" class="size-full object-cover" >
+        <AppImage
+          v-else
+          :key="current.id"
+          :src="current.url"
+          :alt="current.alt || name"
+          :variants="current.variants"
+          :placeholder="current.placeholder"
+          :color="current.color"
+          :width="current.width"
+          :height="current.height"
+          sizes="(min-width: 1024px) 45vw, 100vw"
+          :eager="i === 0"
+          class="size-full"
+        />
       </template>
       <ProductThumb v-else :name="name" class="size-full" rounded="rounded-none" />
       <template v-if="media.length > 1">
-        <button class="absolute left-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 opacity-0 shadow transition group-hover:opacity-100" :aria-label="$t('common.previous')" @click="go(-1)">‹</button>
-        <button class="absolute right-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 opacity-0 shadow transition group-hover:opacity-100" :aria-label="$t('common.next')" @click="go(1)">›</button>
-        <span class="absolute bottom-3 right-3 rounded-full bg-ink/70 px-2.5 py-0.5 text-xs font-semibold text-white">{{ i + 1 }} / {{ media.length }}</span>
+        <button class="absolute left-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-surface/90 opacity-0 shadow transition group-hover:opacity-100" :aria-label="$t('common.previous')" @click="go(-1)">‹</button>
+        <button class="absolute right-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-surface/90 opacity-0 shadow transition group-hover:opacity-100" :aria-label="$t('common.next')" @click="go(1)">›</button>
+        <span class="absolute bottom-3 right-3 rounded-full bg-night/70 px-2.5 py-0.5 text-xs font-semibold text-white">{{ i + 1 }} / {{ media.length }}</span>
       </template>
     </div>
     <div v-if="media.length > 1" class="mt-3 flex gap-2 overflow-x-auto pb-1">
@@ -54,7 +67,7 @@ function onTouchEnd(e: TouchEvent) {
         :aria-label="$t(m.kind === 'video' ? 'store.gallery.video' : 'store.gallery.image', { n: j + 1 })"
         @click="i = j"
       >
-        <MediaTile :asset="m" class="size-full" rounded="rounded-none" />
+        <MediaTile :asset="m" sizes="64px" class="size-full" rounded="rounded-none" />
       </button>
     </div>
   </div>

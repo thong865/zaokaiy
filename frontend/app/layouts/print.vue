@@ -1,5 +1,5 @@
 <template>
-  <div class="print-layout min-h-dvh bg-white text-black">
+  <div class="print-layout theme-light min-h-dvh bg-white text-black">
     <slot />
   </div>
 </template>

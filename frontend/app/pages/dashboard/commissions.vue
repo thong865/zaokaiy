@@ -26,9 +26,9 @@ async function pay(id: string) {
   <div>
     <h1 class="page-title">{{ $t('network.comm.title') }}</h1>
     <i18n-t keypath="network.comm.intro" tag="p" class="text-sm text-muted"><template #pending><b>{{ $t('network.comm.introPending') }}</b></template><template #approved><b>{{ $t('network.comm.introApproved') }}</b></template><template #paid><b>{{ $t('network.comm.introPaid') }}</b></template></i18n-t>
-    <div class="mt-5 flex rounded-full border border-line bg-white p-1 text-sm font-semibold w-fit">
-      <button class="rounded-full px-4 py-1.5" :class="tab === 'earned' && 'bg-ink text-white'" @click="tab = 'earned'">{{ $t('network.comm.earned') }}</button>
-      <button class="rounded-full px-4 py-1.5" :class="tab === 'payable' && 'bg-ink text-white'" @click="tab = 'payable'">{{ $t('network.comm.payable') }}</button>
+    <div class="mt-5 flex rounded-2xl bg-surface p-1 shadow-card text-sm font-semibold w-fit">
+      <button class="rounded-xl px-4 py-1.5" :class="tab === 'earned' && 'bg-brand-500 text-white shadow-[0_6px_16px_-8px_var(--brand-500)]'" @click="tab = 'earned'">{{ $t('network.comm.earned') }}</button>
+      <button class="rounded-xl px-4 py-1.5" :class="tab === 'payable' && 'bg-brand-500 text-white shadow-[0_6px_16px_-8px_var(--brand-500)]'" @click="tab = 'payable'">{{ $t('network.comm.payable') }}</button>
     </div>
     <div v-if="summary" class="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
       <StatCard :label="$t('common.status.pending')" :value="money(summary.pending, cur)" />
@@ -53,7 +53,7 @@ async function pay(id: string) {
         </table>
       </div>
       <EmptyState v-else class="mt-5" :title="$t('network.comm.emptyTitle')" :text="$t('network.comm.emptyText')">
-        <NuxtLink to="/dashboard/marketplace" class="btn-primary">{{ $t('network.comm.findProducts') }}</NuxtLink>
+        <UButton to="/dashboard/marketplace">{{ $t('network.comm.findProducts') }}</UButton>
       </EmptyState>
     </div>
     <div v-else>
@@ -66,7 +66,7 @@ async function pay(id: string) {
               <td>{{ c.product_name }}</td><td>{{ c.reseller_name }}</td>
               <td class="font-bold">{{ money(c.amount_cents, cur) }}</td>
               <td><StatusBadge :status="c.status" /></td>
-              <td class="text-right"><button v-if="c.status === 'approved'" class="btn-primary btn-sm" @click="pay(c.id)">{{ $t('network.comm.markPaid') }}</button></td>
+              <td class="text-right"><UButton size="sm" type="submit" v-if="c.status === 'approved'" @click="pay(c.id)">{{ $t('network.comm.markPaid') }}</UButton></td>
             </tr>
           </tbody>
         </table>

@@ -1,6 +1,5 @@
 import { readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import tailwindcss from '@tailwindcss/vite'
 
 /** Every JSON file in i18n/locales/<code>/ is one namespace (the file holds a single top-level key = file name). */
 const localeFiles = (code: string) =>
@@ -12,7 +11,14 @@ const localeFiles = (code: string) =>
 export default defineNuxtConfig({
   compatibilityDate: '2026-09-01',
   devtools: { enabled: true },
-  modules: ['@nuxtjs/i18n'],
+  modules: ['@nuxt/ui', '@nuxtjs/i18n'],
+  // Nuxt UI (components, colour mode, icons). Theme: app.config.ts (Vuesax-style) + assets/css/main.css tokens.
+  ui: {
+    fonts: false, // Plus Jakarta Sans / Noto Sans Lao are loaded in app.head
+    theme: { colors: ['primary', 'secondary', 'success', 'info', 'warning', 'error'] },
+  },
+  colorMode: { preference: 'system', fallback: 'light', storage: 'cookie', storageKey: 'zk_theme' },
+  icon: { serverBundle: { collections: ['lucide'] }, clientBundle: { scan: true, sizeLimitKb: 512 } },
   i18n: {
     strategy: 'no_prefix',
     // Public site URL for SEO link tags — override with NUXT_PUBLIC_I18N_BASE_URL.
@@ -25,7 +31,6 @@ export default defineNuxtConfig({
     detectBrowserLanguage: { useCookie: true, cookieKey: 'zk_lang', redirectOn: 'root', fallbackLocale: 'en' },
   },
   css: ['~/assets/css/main.css'],
-  vite: { plugins: [tailwindcss()] },
   runtimeConfig: {
     // Override at runtime with env vars NUXT_API_BASE_SERVER / NUXT_PUBLIC_API_BASE.
     // Server-side (SSR) base URL for the Rust API — inside Docker this is the service name.
@@ -37,13 +42,13 @@ export default defineNuxtConfig({
     },
   },
   app: {
+    pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       htmlAttrs: { lang: 'en' },
       title: 'zaokaiy — sell, resell, create',
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'Open your shop, let creators sell for you, and grow with AI.' },
-        { name: 'theme-color', content: '#ff4d2e' },
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
