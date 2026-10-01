@@ -16,11 +16,14 @@ onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
 })
 onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
-const links = [
+// Home + one link per core service (vehicles, food, insurance …) + creators feed.
+const { tiles, has } = useCores()
+const services = computed(() => tiles.value.filter((t) => !t.to.startsWith('/#')))
+const links = computed(() => [
   { to: '/', key: 'common.nav.home', icon: 'home', exact: true },
-  { to: '/vehicles', key: 'vehicle.nav.vehicles', icon: 'car' },
-  { to: '/feed', key: 'common.nav.creators', icon: 'film' },
-]
+  ...services.value.map((t) => ({ to: t.to, key: t.label, icon: t.icon, exact: false })),
+  { to: '/feed', key: 'common.nav.creators', icon: 'film', exact: false },
+])
 const isActive = (to: string, exact?: boolean) => (exact ? route.path === to : route.path.startsWith(to))
 const { t } = useI18n()
 const userMenu = computed(() => [
@@ -28,6 +31,7 @@ const userMenu = computed(() => [
   [
     { label: t('common.nav.sellerDashboard'), icon: 'i-lucide-layout-dashboard', to: '/dashboard' },
     { label: t('common.nav.myOrders'), icon: 'i-lucide-receipt', to: '/orders' },
+    ...(has('insurance') ? [{ label: t('insurance.my.title'), icon: 'i-lucide-shield-plus', to: '/insurance/my' }] : []),
     { label: t('common.nav.account'), icon: 'i-lucide-user', to: '/account' },
     ...(user.value?.role === 'admin' ? [{ label: t('common.nav.adminConsole'), icon: 'i-lucide-shield-check', to: '/admin', color: 'primary' as const }] : []),
   ],
@@ -81,7 +85,7 @@ const initial = computed(() => user.value?.display_name?.slice(0, 1).toUpperCase
       <slot />
     </main>
     <footer class="mt-24 bg-surface">
-      <div class="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-flow-col lg:grid-cols-none lg:auto-cols-fr">
         <div class="space-y-3">
           <AppLogo />
           <p class="max-w-xs text-sm text-muted">{{ $t('common.appTagline') }}</p>
@@ -91,7 +95,7 @@ const initial = computed(() => user.value?.display_name?.slice(0, 1).toUpperCase
           <div class="eyebrow">{{ $t('common.footer.shop') }}</div>
           <ul class="mt-3 space-y-2 text-sm">
             <li><NuxtLink to="/" class="text-ink/75 hover:text-brand-500">{{ $t('common.nav.marketplace') }}</NuxtLink></li>
-            <li><NuxtLink to="/vehicles" class="text-ink/75 hover:text-brand-500">{{ $t('vehicle.nav.vehicles') }}</NuxtLink></li>
+            <li v-for="t in services" :key="t.to"><NuxtLink :to="t.to" class="text-ink/75 hover:text-brand-500">{{ $t(t.label) }}</NuxtLink></li>
             <li><NuxtLink to="/feed" class="text-ink/75 hover:text-brand-500">{{ $t('common.nav.creators') }}</NuxtLink></li>
           </ul>
         </div>
@@ -111,13 +115,15 @@ const initial = computed(() => user.value?.display_name?.slice(0, 1).toUpperCase
             <li><NuxtLink to="/account" class="text-ink/75 hover:text-brand-500">{{ $t('common.nav.account') }}</NuxtLink></li>
           </ul>
         </div>
+        <!-- plug-in modules add footer columns here (e.g. cms: news, guides, policies) -->
+        <ModuleSlot name="footer.links" />
       </div>
       <div class="border-t border-line/70 py-5 text-center text-xs text-muted">© {{ new Date().getFullYear() }} zaokaiy</div>
     </footer>
 
     <!-- Mobile tab bar -->
     <nav class="glass fixed inset-x-3 bottom-3 z-30 flex items-center justify-around rounded-[20px] p-1.5 shadow-pop md:hidden" :aria-label="$t('common.nav.menu')">
-      <NuxtLink v-for="l in links" :key="l.to" :to="l.to" class="flex flex-1 flex-col items-center gap-0.5 rounded-2xl py-1.5 text-[10px] font-semibold transition" :class="isActive(l.to, l.exact) ? 'text-brand-500' : 'text-muted'">
+      <NuxtLink v-for="l in links.slice(0, 3)" :key="l.to" :to="l.to" class="flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-2xl py-1.5 text-center text-[10px] font-semibold leading-tight transition" :class="isActive(l.to, l.exact) ? 'text-brand-500' : 'text-muted'">
         <AppIcon :name="l.icon" class="size-5" />{{ $t(l.key) }}
       </NuxtLink>
       <NuxtLink to="/cart" class="relative flex flex-1 flex-col items-center gap-0.5 rounded-2xl py-1.5 text-[10px] font-semibold transition" :class="isActive('/cart') ? 'text-brand-500' : 'text-muted'">

@@ -1,0 +1,177 @@
+{
+  "promo": {
+    "nav": {
+      "promotions": "Promotions",
+      "loyalty": "Loyalty points",
+      "admin": "Promotions"
+    },
+    "shop": {
+      "title": "Promotions",
+      "intro": "Reward customers automatically: a coupon or bonus points after their first order, or a code to announce in your live (\"LIVE10\"). Works on the web shop, chat orders and the POS.",
+      "new": "New campaign",
+      "edit": "Edit campaign",
+      "emptyTitle": "No campaigns yet",
+      "emptyText": "Create a first-order reward or a live code to bring customers back."
+    },
+    "admin": {
+      "title": "Platform promotions",
+      "intro": "Campaigns the platform pays for — for example a welcome coupon for everyone who signs up with Facebook or WhatsApp. Shops receive the full price; the platform owes them the discount.",
+      "emptyTitle": "No platform campaigns",
+      "emptyText": "Create a sign-up campaign to welcome new customers.",
+      "owedTitle": "Owed to shops",
+      "owedIntro": "Platform-paid discounts on sales that weren't cancelled.",
+      "sales": "Sales",
+      "owed": "Owed",
+      "owedNone": "Nothing owed yet."
+    },
+    "status": {
+      "live": "Live",
+      "off": "Off"
+    },
+    "stats": {
+      "given": "Given",
+      "used": "Used",
+      "discount": "Discount given"
+    },
+    "minSpendShort": "min. {amount}",
+    "trigger": {
+      "signup": "New sign-up",
+      "signupHint": "Everyone who creates an account with the chosen methods gets a coupon.",
+      "first_order": "First order",
+      "first_orderHint": "After a customer's first completed order: a coupon for the next one, or bonus points.",
+      "code": "Promo code",
+      "codeHint": "Anyone who types the code at checkout — once per customer."
+    },
+    "method": {
+      "facebook": "Facebook",
+      "whatsapp": "WhatsApp",
+      "google": "Google",
+      "email": "Email",
+      "any": "Any method"
+    },
+    "rewardType": {
+      "amount": "Amount off",
+      "percent": "% off",
+      "free_shipping": "Free shipping",
+      "points": "Bonus points"
+    },
+    "reward": {
+      "amountOff": "{amount} off",
+      "percentOff": "{pct}% off",
+      "percentOffMax": "{pct}% off (max {max})",
+      "freeShipping": "Free shipping",
+      "points": "+{n} points"
+    },
+    "channel": {
+      "web": "Web shop",
+      "social": "Chat orders",
+      "pos": "POS"
+    },
+    "form": {
+      "name": "Name",
+      "namePh": "First order thank-you",
+      "namePlatformPh": "Welcome — sign up with Facebook",
+      "description": "Description",
+      "descriptionPh": "Shown to customers with their coupon",
+      "when": "When",
+      "signupWith": "Signed up with",
+      "signupHint": "Only accounts created with these methods get the coupon.",
+      "signupAny": "No method chosen: every new account gets it.",
+      "code": "Code",
+      "codeHint": "3–20 letters or digits",
+      "reward": "Reward",
+      "currency": "Currency",
+      "amount": "Amount ({cur})",
+      "percent": "Percent off",
+      "maxDiscount": "Max discount ({cur})",
+      "zeroNoLimit": "0 = no limit",
+      "points": "Points",
+      "minSpend": "Minimum spend ({cur})",
+      "couponDays": "Coupon valid for (days)",
+      "platformPays": "The platform pays for these discounts; shops still receive the full price.",
+      "channels": "Where it can be used",
+      "starts": "Starts",
+      "ends": "Ends",
+      "budget": "Budget (rewards)",
+      "active": "Active"
+    },
+    "loyalty": {
+      "title": "Loyalty points",
+      "intro": "Customers earn points on every completed sale — web, chat orders and the POS — and spend them as a discount. A member is a phone number, so the same customer collects everywhere.",
+      "enabled": "Points programme on",
+      "earn": "Spend ({cur}) to earn 1 point",
+      "earnHint": "On what the customer paid for goods, after discounts.",
+      "value": "1 point is worth ({cur})",
+      "example": "Spend {spend} → {points} points = {value} off next time ({pct}% back).",
+      "min": "Min. points per use",
+      "maxPct": "Max % of a bill",
+      "expiry": "Points expire after inactivity (days)",
+      "expiryHint": "0 = never",
+      "members": "Members",
+      "outstanding": "Points outstanding",
+      "outstandingValue": "Worth",
+      "search": "Search name or phone",
+      "member": "Member",
+      "balance": "Points",
+      "orders": "Orders",
+      "lastActivity": "Last activity",
+      "noMembers": "No members yet",
+      "noMembersText": "Customers become members with their first completed sale once points are on.",
+      "points": "points",
+      "adjustPh": "+10 / −10",
+      "adjustNote": "Reason (shown in the history)",
+      "adjust": "Adjust"
+    },
+    "reason": {
+      "earn": "Earned",
+      "redeem": "Used",
+      "bonus": "Bonus",
+      "adjust": "Adjusted",
+      "reverse": "Reversed (cancelled sale)",
+      "expire": "Expired"
+    },
+    "rewards": {
+      "title": "My rewards",
+      "intro": "Coupons you received and your points at each shop.",
+      "coupons": "Coupons",
+      "atShop": "At",
+      "anyShop": "Any shop on zaokaiy",
+      "until": "until {date}",
+      "noCoupons": "No coupons right now",
+      "noCouponsText": "Welcome gifts and thank-you coupons appear here.",
+      "points": "Points",
+      "needPhone": "Points are saved to your phone number.",
+      "connectWhatsapp": "Connect WhatsApp",
+      "worth": "worth {amount}",
+      "noPoints": "No points yet — they come with your first completed order.",
+      "past": "Used and expired",
+      "summary": "{coupons} coupons ready · {points} points"
+    },
+    "couponStatus": {
+      "active": "Ready",
+      "used": "Used",
+      "expired": "Expired",
+      "void": "Cancelled"
+    },
+    "box": {
+      "title": "Coupon & points",
+      "signIn": "Sign in to use a coupon or your points.",
+      "codePh": "Coupon code",
+      "apply": "Apply",
+      "youHave": "You have {n} points at {shop} (worth {value}).",
+      "useMax": "Use max",
+      "pointsNeedWhatsapp": "Points belong to your phone number — connect WhatsApp in your account to use them.",
+      "youHaveHere": "This phone has {n} points here (worth {value}).",
+      "signInToUse": "Sign in with WhatsApp on this number to use them.",
+      "signInLink": "Sign in"
+    },
+    "pos": {
+      "phonePh": "Member phone",
+      "lookup": "Find",
+      "balance": "{n} points",
+      "newMember": "New member — earns points with this sale",
+      "points": "Points",
+      "earnHint": "This sale earns points for this phone."
+    }
+  }
+}

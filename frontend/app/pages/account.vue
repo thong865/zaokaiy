@@ -88,6 +88,8 @@ async function savePassword() {
       </div>
     </div>
 
+    <ModuleSlot name="account.sections" />
+
     <p v-if="flash" class="mt-4 rounded-xl bg-mint-500/10 px-4 py-2 text-sm font-semibold text-mint-500">{{ flash }}</p>
     <p v-if="error" class="mt-4 rounded-xl bg-brand-50 px-4 py-2 text-sm text-brand-700">{{ error }}</p>
 

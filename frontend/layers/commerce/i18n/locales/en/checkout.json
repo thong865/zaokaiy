@@ -1,0 +1,44 @@
+{
+  "checkout": {
+    "notFound": "Order not found",
+    "title": "Order {number} · {shop}",
+    "orderVia": "Order {number} · via {provider}",
+    "status": {
+      "open": "Please confirm your delivery details",
+      "confirmed": "Details confirmed — waiting for payment",
+      "paid": "Payment received — we’re packing your order",
+      "shipped": "Shipped!",
+      "completed": "Delivered — thank you!",
+      "cancelled": "This order was cancelled",
+      "expired": "This reservation has expired"
+    },
+    "reserved": "Items are reserved for you for another {time}.",
+    "hoursMinutes": "{h} h {m} min",
+    "minutes": "{m} min",
+    "tracking": "Tracking: {no}",
+    "deliveryDetails": "Delivery details",
+    "fullName": "Full name",
+    "phoneNumber": "Phone number",
+    "addressPlaceholder": "Address, district, province, postcode",
+    "notePlaceholder": "Note for the shop (optional)",
+    "confirmOrder": "Confirm order",
+    "deliverTo": "Deliver to",
+    "payment": "Payment",
+    "contactForPayment": "The shop will contact you with payment details.",
+    "codPlaceholder": "Type COD",
+    "refPlaceholder": "Transfer ref / time / last 4 digits",
+    "updatePayment": "Update payment info",
+    "iPaid": "I’ve paid",
+    "thanks": "Thanks! The shop will verify your payment ({ref}).",
+    "poweredBy": "Powered by zaokaiy",
+    "visit": "Visit {shop}",
+    "track": {
+      "title": "Order tracking",
+      "ordered": "Order received",
+      "confirmed": "Delivery details confirmed",
+      "paid": "Payment received",
+      "shipped": "Handed to the courier",
+      "completed": "Delivered"
+    }
+  }
+}

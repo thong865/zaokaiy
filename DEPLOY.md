@@ -86,7 +86,8 @@ The first build takes about 5–15 minutes, mostly compiling Rust. Database migr
 Tip: add an alias to save typing:
 
 ```bash
-echo "alias zk='docker compose -f /opt/zaokaiy/docker-compose.prod.yml --env-file /opt/zaokaiy/.env.prod'" >> ~/.bashrc && source ~/.bashrc
+touch /opt/zaokaiy/deploy/.release.env   # image tags of the running release (written by GitHub Actions deploys)
+echo "alias zk='docker compose -f /opt/zaokaiy/docker-compose.prod.yml --env-file /opt/zaokaiy/.env.prod --env-file /opt/zaokaiy/deploy/.release.env'" >> ~/.bashrc && source ~/.bashrc
 zk ps
 ```
 
@@ -150,9 +151,53 @@ zk exec db psql -U zaokaiy -c "UPDATE users SET totp_secret=NULL, totp_enabled_a
 
 ## 10. Updating
 
+### Automatic: GitHub Actions (recommended)
+
+Every push to `master` runs [.github/workflows/deploy.yml](.github/workflows/deploy.yml):
+
+1. **check** — Rust unit tests and the Nuxt typecheck.
+2. **build** — builds the API and web images in GitHub (not on the VPS) and pushes them to
+   `ghcr.io/<owner>/zaokaiy-api` and `zaokaiy-web`, tagged with the commit SHA.
+3. **deploy** — over SSH: fast-forwards the checkout in `/opt/zaokaiy` to that commit, pulls the two images and
+   runs `deploy/deploy.sh`, which restarts the stack and waits for `/api/health`. If the new release isn't
+   healthy within 3 minutes, the previous release is started again and the run fails.
+
+Changes only under `pos-desktop/`, `docs/`, `scripts/` or `*.md` don't deploy. Run it by hand from
+*Actions → Deploy → Run workflow* (tick *Skip tests* for an emergency fix).
+
+One-time setup:
+
+1. The server has the repo cloned at `/opt/zaokaiy` (step 5, option A) and `.env.prod` filled in (step 6).
+2. A key GitHub Actions can log in with:
+   ```bash
+   ssh-keygen -t ed25519 -N '' -f gh-deploy -C github-actions   # on your PC
+   ssh-copy-id -i gh-deploy.pub root@YOUR_VPS_IP
+   ```
+3. GitHub → repo → *Settings → Secrets and variables → Actions*:
+   - secrets: `SERVER_HOST` (VPS IP), `SERVER_USER` (`root`), `SERVER_SSH_KEY` (the contents of `gh-deploy`),
+     optional `SERVER_PORT` if SSH isn't on 22
+   - variables (optional): `DEPLOY_PATH` if the checkout isn't `/opt/zaokaiy`, `SITE_URL` (`https://DOMAIN`)
+     for the link on each deploy
+4. Optional: *Settings → Environments → production → Required reviewers* to approve each deploy before it runs.
+
+The images are private packages; each deploy logs the server in to ghcr.io with the run's own token and logs
+out afterwards, so the server needs no GitHub token of its own.
+
+Roll back to the release before the last deploy:
+
+```bash
+cd /opt/zaokaiy && bash deploy/deploy.sh rollback
+```
+
+Database migrations are not undone by a rollback — keep migrations backward compatible (add columns, don't
+rename or drop them in the same release that stops using them), and restore a backup (step 11) if you must.
+
+### Manual: build on the server
+
 ```bash
 cd /opt/zaokaiy
 git pull                     # or upload a new zaokaiy.tgz as in step 5
+: > deploy/.release.env      # forget CI images, so compose builds from source
 zk up -d --build             # rebuilds only what changed; migrations run on start
 docker image prune -f        # free disk space from old images
 ```
@@ -176,7 +221,7 @@ zk exec -T db pg_restore -U zaokaiy -d zaokaiy --clean --if-exists < /var/backup
 
 ## About Hostinger's Docker Manager
 
-Docker Manager (hPanel → VPS → Docker Manager) deploys compose projects from a URL or pasted YAML. Its documentation doesn't say whether it builds from source (the `build:` sections here compile the Rust API and Nuxt app), so the SSH steps above are the reliable route. To use Docker Manager or GitHub Actions later, build the two images in CI, push them to a registry (e.g. GHCR), and replace `build:` with `image:` in `docker-compose.prod.yml`.
+Docker Manager (hPanel → VPS → Docker Manager) deploys compose projects from a URL or pasted YAML. Its documentation doesn't say whether it builds from source (the `build:` sections here compile the Rust API and Nuxt app), so the SSH steps above are the reliable route. The GitHub Actions deploy (step 10) already pushes ready-made images to GHCR (`ghcr.io/<owner>/zaokaiy-api:<sha>` and `zaokaiy-web`), which Docker Manager could also pull.
 
 ## Troubleshooting
 

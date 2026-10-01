@@ -1,0 +1,103 @@
+{
+  "finance": {
+    "seller": {
+      "title": "Tax & VAT",
+      "subtitle": "{agent} files VAT and e-commerce tax for your zaokaiy sales as your tax agent.",
+      "status": "Tax agent"
+    },
+    "rates": {
+      "vat": "VAT",
+      "vatHint": "Included in prices when you're VAT-registered",
+      "ecommerce": "E-commerce tax",
+      "ecommerceHint": "On sales after VAT",
+      "due": "Filing",
+      "dueDay": "By day {n}",
+      "dueHint": "of the following month"
+    },
+    "mandate": {
+      "title": "Tax-agent mandate",
+      "active": "Active",
+      "revoked": "Revoked",
+      "none": "Not appointed",
+      "noneHint": "Accept the policy below",
+      "since": "Since {date}",
+      "outdated": "The policy was updated — read it and accept again to keep the mandate current.",
+      "version": "Policy version {v}",
+      "needTaxId": "Add your tax ID (TIN) before appointing a tax agent:",
+      "signer": "Signed by (full name)",
+      "signerTitle": "Position",
+      "signerTitlePh": "Owner, Director…",
+      "vatRegistered": "We are VAT-registered",
+      "vatRegisteredHint": "Our prices include VAT, so VAT is taken out of every sale.",
+      "agree": "I have read the policy and appoint {agent} as our tax agent for sales made on zaokaiy.",
+      "accept": "Accept and appoint",
+      "signedBy": "Signed by {name} on {date}",
+      "vatYes": "VAT-registered",
+      "vatNo": "Not VAT-registered",
+      "taxId": "TIN {id}",
+      "revoke": "Revoke mandate",
+      "revokeHint": "Filings already submitted stay in force. From next month you file your own taxes.",
+      "reason": "Reason (optional)",
+      "revokeConfirm": "Revoke"
+    },
+    "preview": {
+      "title": "{month} so far",
+      "vatIncluded": "Estimate — prices include VAT.",
+      "noVat": "Estimate — no VAT (not VAT-registered).",
+      "noSales": "No completed sales this month yet.",
+      "count": "{n} sales"
+    },
+    "source": {
+      "commerce_orders": "Online orders",
+      "commerce_social": "Social orders",
+      "commerce_pos": "Counter sales (POS)",
+      "restaurant_orders": "Restaurant orders"
+    },
+    "col": {
+      "period": "Month",
+      "gross": "Sales",
+      "vat": "VAT",
+      "ecommerce": "E-commerce tax",
+      "due": "Tax due",
+      "status": "Status",
+      "reference": "Tax office ref."
+    },
+    "status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "paid": "Paid",
+      "void": "Void"
+    },
+    "filings": {
+      "title": "Filings",
+      "empty": "Monthly filings made for you will appear here."
+    },
+    "admin": {
+      "title": "Tax filings",
+      "subtitle": "You file for {n} shops that appointed zaokaiy as their tax agent.",
+      "generate": "Generate drafts",
+      "settings": "Rates & policy",
+      "notEnded": "This month hasn't ended yet — pick a past month to file.",
+      "generated": "{n} drafts computed · {locked} submitted/paid left unchanged",
+      "totalDue": "Tax due ({cur})",
+      "totalHint": "Sales {gross} · VAT {vat}",
+      "emptyTitle": "No filings for {month}",
+      "emptyText": "Generate drafts once the month has ended.",
+      "dueOn": "due {date}",
+      "nilReturn": "Nil return — no sales",
+      "reference": "Tax office reference no.",
+      "note": "Note",
+      "submit": "Mark submitted",
+      "paid": "Mark paid",
+      "void": "Void",
+      "reopen": "Reopen",
+      "dueDayLabel": "Due day of next month",
+      "agentName": "Agent name",
+      "agentTin": "Agent TIN",
+      "taxOffice": "Tax office",
+      "policyEn": "Policy (English)",
+      "policyLo": "Policy (Lao)",
+      "policyHint": "Current version {v}. Changing the text creates a new version; shops are asked to accept it again."
+    }
+  }
+}

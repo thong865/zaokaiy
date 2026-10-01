@@ -4,7 +4,7 @@ import type { KybDocument, KybView, Shop } from '~/utils/types'
 definePageMeta({ layout: 'dashboard', middleware: 'seller' })
 const api = useApi()
 const { t } = useI18n()
-const { shop, shopId, shops } = useShop()
+const { shop, shopId, replaceShop } = useShop()
 
 const { data, refresh } = await useAsyncData('kyb', () => (shopId.value ? api<KybView>(`/shops/${shopId.value}/kyb`) : Promise.resolve(null)), {
   watch: [shopId],
@@ -112,7 +112,7 @@ async function becomeBusiness() {
   error.value = ''
   try {
     const s = await api<Shop>(`/shops/${shopId.value}`, { method: 'PATCH', body: { entity_type: 'business' } })
-    shops.value[shops.value.findIndex((x) => x.id === s.id)] = s
+    replaceShop(s)
     await refresh()
   } catch (e) {
     error.value = apiError(e)

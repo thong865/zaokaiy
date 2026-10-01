@@ -4,6 +4,7 @@ orders, an active ad and published creator content.
 
 Usage: python3 scripts/seed.py [http://localhost:8080]
 Logins (password: password123): siam@demo.dev, lanna@demo.dev, bee@demo.dev, buyer@demo.dev, auto@demo.dev,
+khao@demo.dev (restaurant), cover@demo.dev (insurance agent),
 admin@demo.dev (platform admin — start the API with ADMIN_EMAILS=admin@demo.dev)
 """
 import json, sys, urllib.request, urllib.error
@@ -148,7 +149,10 @@ def main():
 
     seed_vehicles(admin, buyer)
     seed_kyb(admin, siam, s1, lanna, s2)
-    print("Seeded ✔  Logins (password123): siam@ · lanna@ · bee@ · buyer@ · auto@ · admin@demo.dev")
+    seed_restaurant(buyer)
+    seed_insurance(buyer)
+    seed_finance(siam, s1)
+    print("Seeded ✔  Logins (password123): siam@ · lanna@ · bee@ · buyer@ · auto@ · khao@ · cover@ · admin@demo.dev")
 
 
 def seed_vehicles(admin, buyer):
@@ -190,6 +194,72 @@ def seed_vehicles(admin, buyer):
     lead("VA-CLICK160", {"kind": "reserve", "name": "Noy", "phone": "020 9876 5432"})
     lead("VA-ATTO3", {"kind": "finance", "name": "Vanh", "phone": "+856 20 2345 6789", "message": "30% down, 48 months?"})
     lead("VA-RANGER22", {"kind": "enquiry", "name": "Tou", "phone": "030 512 3456", "message": "Any accident history?"})
+
+
+def seed_restaurant(buyer):
+    """Restaurant: menu with sections, two tables, a few kitchen orders."""
+    cook = account("khao@demo.dev", "Khao Niew Kitchen")
+    shop = req("POST", "/shops", {"slug": "khao-niew", "name": "Khao Niew Kitchen", "vertical": "restaurant", "currency": "LAK",
+        "description": "Lao home cooking in Ban Anou — larb, tam mak hoong and sticky rice, made to order."}, cook)
+    sid = shop["id"]
+    req("PATCH", f"/shops/{sid}", {"phone": "+856 20 5888 1212", "address": "Ban Anou, Chanthabouly, Vientiane Capital"}, cook)
+    req("PUT", f"/shops/{sid}/restaurant", {"accepting_orders": True, "dine_in": True, "takeaway": True, "delivery": True,
+        "service_charge_bps": 0, "prep_minutes": 15}, cook)
+    M = 100
+    menu = {
+        ("Lao classics", "ອາຫານລາວ"): [("Larb gai", "ລາບໄກ່", 45_000, 2, "Minced chicken, toasted rice, mint, lime."),
+                                       ("Tam mak hoong", "ຕຳໝາກຫຸ່ງ", 25_000, 3, "Green papaya salad with padaek."),
+                                       ("Ping sin", "ປີ້ງຊີ້ນ", 55_000, 0, "Grilled marinated beef, jeow bong.")],
+        ("Noodles", "ເສັ້ນ"): [("Khao piak sen", "ເຂົ້າປຽກເສັ້ນ", 30_000, 0, "Rice noodle soup with chicken."),
+                               ("Khao soi Luang Prabang", "ເຂົ້າຊອຍຫຼວງພະບາງ", 35_000, 1, "Pork tomato sauce, wide noodles.")],
+        ("Rice & sides", "ເຂົ້າ ແລະ ອື່ນໆ"): [("Sticky rice", "ເຂົ້າໜຽວ", 5_000, 0, "Steamed in a bamboo basket.")],
+        ("Drinks", "ເຄື່ອງດື່ມ"): [("Lao iced coffee", "ກາເຟລາວເຢັນ", 15_000, 0, "Dark roast, condensed milk."),
+                                 ("Fresh coconut", "ໝາກພ້າວ", 20_000, 0, "")],
+    }
+    items = {}
+    for (sec, sec_lo), dishes in menu.items():
+        section = req("POST", f"/shops/{sid}/restaurant/sections", {"name": sec, "name_lo": sec_lo}, cook)
+        for name, name_lo, price, spicy, desc in dishes:
+            it = req("POST", f"/shops/{sid}/restaurant/items", {"name": name, "name_lo": name_lo, "price_cents": price * M,
+                "spicy": spicy, "description": desc, "section_id": section["id"], "image_url": img("food-" + name.lower().replace(" ", "-"))}, cook)
+            items[name] = it["id"]
+    t1 = req("POST", f"/shops/{sid}/restaurant/tables", {"label": "T1", "seats": 4}, cook)
+    req("POST", f"/shops/{sid}/restaurant/tables", {"label": "T2", "seats": 6}, cook)
+    o1 = req("POST", "/restaurant/menu/khao-niew/orders", {"mode": "dine_in", "table_token": t1["token"], "items": [
+        {"item_id": items["Larb gai"], "qty": 1}, {"item_id": items["Sticky rice"], "qty": 2}, {"item_id": items["Lao iced coffee"], "qty": 2}]})
+    req("POST", "/restaurant/menu/khao-niew/orders", {"mode": "takeaway", "customer_name": "Noy", "customer_phone": "020 9876 5432",
+        "items": [{"item_id": items["Tam mak hoong"], "qty": 2, "note": "medium spicy"}]}, buyer)
+    req("PATCH", f"/restaurant/orders/{o1['id']}", {"status": "served", "paid": True, "payment_method": "cash"}, cook)
+
+
+def seed_insurance(buyer):
+    """Insurance agent with motor, travel and health plans, and one application."""
+    agent = account("cover@demo.dev", "Mekong Cover")
+    shop = req("POST", "/shops", {"slug": "mekong-cover", "name": "Mekong Cover", "vertical": "insurance", "currency": "LAK",
+        "description": "Licensed insurance agent in Vientiane — car, motorbike, travel and health cover from Lao insurers."}, agent)
+    req("PATCH", f"/shops/{shop['id']}", {"phone": "+856 20 5444 3333", "address": "Lane Xang Avenue, Vientiane Capital"}, agent)
+    M = 100
+    motor = req("POST", f"/shops/{shop['id']}/insurance/plans", {"kind": "motor", "insurer": "Demo Insurer A", "name": "Car — comprehensive",
+        "name_lo": "ລົດ — ຄຸ້ມຄອງທຸກຢ່າງ", "coverage": ["Own damage & theft", "Third-party injury and property", "24h roadside help"],
+        "premium_mode": "rate", "rate_bps": 250, "min_premium_cents": 1_500_000 * M,
+        "sum_insured_min_cents": 50_000_000 * M, "sum_insured_max_cents": 3_000_000_000 * M, "term_months": 12}, agent)
+    req("POST", f"/shops/{shop['id']}/insurance/plans", {"kind": "motor", "insurer": "Demo Insurer A", "name": "Motorbike — third party",
+        "name_lo": "ລົດຈັກ — ບຸກຄົນທີສາມ", "coverage": ["Third-party injury", "Third-party property"], "premium_cents": 180_000 * M, "term_months": 12}, agent)
+    req("POST", f"/shops/{shop['id']}/insurance/plans", {"kind": "travel", "insurer": "Demo Insurer B", "name": "ASEAN travel 30 days",
+        "name_lo": "ທ່ອງທ່ຽວອາຊຽນ 30 ວັນ", "coverage": ["Medical up to 50,000 USD", "Trip delay", "Lost luggage"], "premium_cents": 250_000 * M, "term_months": 1}, agent)
+    req("POST", f"/shops/{shop['id']}/insurance/plans", {"kind": "health", "insurer": "Demo Insurer B", "name": "Family health",
+        "name_lo": "ສຸຂະພາບຄອບຄົວ", "coverage": ["In-patient", "Out-patient 20 visits", "Dental"], "premium_cents": 4_800_000 * M, "term_months": 12}, agent)
+    import datetime
+    start = (datetime.date.today() + datetime.timedelta(days=7)).isoformat()
+    req("POST", f"/insurance/plans/{motor['id']}/apply", {"applicant_name": "Somphone K.", "phone": "020 5555 1234",
+        "sum_insured_cents": 540_000_000 * M, "start_date": start, "details": {"plate": "ກຂ 1234", "make": "Toyota", "model": "Hilux Revo", "year": 2020}}, buyer)
+
+
+def seed_finance(siam, s1):
+    """Siam Crafts (verified business) appoints the platform as its tax agent."""
+    pol = req("GET", "/finance/policy")
+    req("POST", f"/shops/{s1['id']}/finance/mandate", {"accept": True, "policy_version": pol["policy_version"],
+        "signer_name": "Anan S.", "signer_title": "Managing Director", "vat_registered": True}, siam)
 
 
 def upload_doc(shop_id, kind, data, name, token):

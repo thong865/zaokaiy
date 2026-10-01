@@ -2,8 +2,11 @@
 import type { Shop } from '~/utils/types'
 
 definePageMeta({ layout: 'dashboard', middleware: 'seller' })
+// Shop types offered by the cores the API runs (general, vehicle, restaurant, insurance …).
+const { enabled, onboarding } = useCores()
+const verticals = computed(() => [...new Set(enabled.value?.flatMap((c) => c.verticals) ?? onboarding.value.map((o) => o.vertical))])
 const api = useApi()
-const { shop, shops, createShop } = useShop()
+const { shop, createShop, replaceShop, isOwner } = useShop()
 const { locale } = useI18n()
 const currencies = ['THB', 'LAK', 'USD']
 const f = reactive({ name: '', description: '', logo_url: '', kind: 'seller', vertical: 'general', entity_type: 'individual', currency: 'THB' })
@@ -20,8 +23,7 @@ async function saveBiz() {
   try {
     const { vat, ...rest } = biz
     const updated = await api<Shop>(`/shops/${shop.value!.id}`, { method: 'PATCH', body: { ...rest, vat_bps: Math.round(Number(vat) * 100) } })
-    const i = shops.value.findIndex((s) => s.id === updated.id)
-    shops.value[i] = updated
+    replaceShop(updated)
     bizMsg.value = 'common.saved'
   } catch (e) {
     error.value = apiError(e)
@@ -33,8 +35,7 @@ async function save() {
   msg.value = error.value = ''
   try {
     const updated = await api<Shop>(`/shops/${shop.value!.id}`, { method: 'PATCH', body: { ...f, logo_url: f.logo_url || null } })
-    const i = shops.value.findIndex((s) => s.id === updated.id)
-    shops.value[i] = updated
+    replaceShop(updated)
     msg.value = 'common.saved'
   } catch (e) {
     error.value = apiError(e)
@@ -62,17 +63,17 @@ async function addShop() {
       <div><label class="label">{{ $t('dash.settings.logoUrl') }}</label><UInput v-model="f.logo_url" /></div>
       <div>
         <label class="label">{{ $t('dash.settings.shopType') }}</label>
-        <select v-model="f.kind" class="input"><option value="seller">{{ $t('dash.settings.typeSeller') }}</option><option value="creator">{{ $t('dash.settings.typeCreator') }}</option></select>
+        <select v-model="f.kind" class="input" :disabled="!isOwner"><option value="seller">{{ $t('dash.settings.typeSeller') }}</option><option value="creator">{{ $t('dash.settings.typeCreator') }}</option></select>
       </div>
       <div>
         <label class="label">{{ $t('kyb.entity.label') }}</label>
-        <select v-model="f.entity_type" class="input"><option value="individual">{{ $t('kyb.entity.individual') }}</option><option value="business">{{ $t('kyb.entity.business') }}</option></select>
+        <select v-model="f.entity_type" class="input" :disabled="!isOwner"><option value="individual">{{ $t('kyb.entity.individual') }}</option><option value="business">{{ $t('kyb.entity.business') }}</option></select>
         <p class="mt-1 text-xs text-muted">{{ $t('kyb.entity.hint') }} <NuxtLink v-if="shop?.entity_type === 'business'" to="/dashboard/verification" class="font-semibold text-brand-600 hover:underline">{{ $t('kyb.nav') }} →</NuxtLink></p>
       </div>
       <div>
-        <label class="label">{{ $t('vehicle.store.vertical') }}</label>
-        <select v-model="f.vertical" class="input"><option value="general">{{ $t('vehicle.store.general') }}</option><option value="vehicle">{{ $t('vehicle.store.vehicle') }}</option></select>
-        <p class="mt-1 text-xs text-muted">{{ $t('vehicle.store.verticalHint') }}</p>
+        <label class="label">{{ $t('common.verticals.label') }}</label>
+        <select v-model="f.vertical" class="input" :disabled="!isOwner"><option v-for="v in verticals" :key="v" :value="v">{{ $te(`common.verticals.${v}`) ? $t(`common.verticals.${v}`) : v }}</option></select>
+        <p class="mt-1 text-xs text-muted">{{ $t('common.verticals.hint') }}</p>
       </div>
       <div>
         <label class="label">{{ $t('dash.settings.currency') }}</label>

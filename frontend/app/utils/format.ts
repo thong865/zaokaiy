@@ -149,3 +149,21 @@ export function subtreeIds(nodes: { id: string; parent_id: string | null }[], id
   }
   return out
 }
+
+// Contact links (shops, dealers, restaurants): Lao / Thai local numbers become international.
+/** Digits-only phone for wa.me / tel: links (Lao local 020… → 85620…). */
+export function intlDigits(phone: string | null | undefined): string {
+  const t = (phone ?? '').trim()
+  let d = t.replace(/\D/g, '')
+  if (t.startsWith('00')) d = d.slice(2)
+  else if (!t.startsWith('+') && d.startsWith('0')) d = '856' + d.slice(1)
+  return d.length >= 8 ? d : ''
+}
+export const waLink = (phone: string | null | undefined, text: string) => {
+  const d = intlDigits(phone)
+  return d ? `https://wa.me/${d}?text=${encodeURIComponent(text)}` : ''
+}
+export const telLink = (phone: string | null | undefined) => {
+  const d = intlDigits(phone)
+  return d ? `tel:+${d}` : ''
+}

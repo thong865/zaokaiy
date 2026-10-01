@@ -1,0 +1,36 @@
+{
+  "possync": {
+    "nav": "POS terminals",
+    "pair": {
+      "title": "Connect a POS terminal",
+      "lead": "Enter the code shown on the zaokaiy POS desktop app. The terminal will sell as you, with or without internet.",
+      "code": "Pairing code",
+      "lookup": "Continue",
+      "terminal": "Terminal",
+      "shop": "Shop",
+      "noShops": "You need POS access to a shop to connect a terminal.",
+      "approve": "Approve",
+      "approved": "Approved. The terminal connects to {shop} in a few seconds — you can close this page.",
+      "expired": "This code has expired. Get a new code on the terminal.",
+      "used": "This code was already used.",
+      "asYou": "Sales from this terminal are recorded with your name as the cashier."
+    },
+    "devices": {
+      "title": "POS terminals",
+      "lead": "Computers running the zaokaiy POS app. They keep selling when the internet is down and upload sales when it is back. Each terminal numbers its receipts in its own series (e.g. RT01-000001).",
+      "download": "Pair a new terminal: install the zaokaiy POS app on Windows or macOS, open it and approve its code at {url}.",
+      "code": "Code",
+      "name": "Name",
+      "cashier": "Cashier",
+      "lastSeen": "Last seen",
+      "lastUpload": "Last upload",
+      "sales": "Sales",
+      "lastReceipt": "Last receipt",
+      "never": "never",
+      "revoke": "Remove",
+      "revokeConfirm": "Remove terminal {code}? It stops syncing immediately; sales already uploaded stay.",
+      "revoked": "Removed",
+      "empty": "No terminals yet."
+    }
+  }
+}

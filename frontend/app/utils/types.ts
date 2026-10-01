@@ -36,7 +36,8 @@ export interface Shop {
   logo_url: string | null
   currency: string
   kind: 'seller' | 'creator'
-  vertical: 'general' | 'vehicle'
+  /** Shop type, from the cores: general · vehicle · restaurant · insurance … */
+  vertical: string
   entity_type: 'individual' | 'business'
   kyb_status: KybStatus
   kyb_verified_at: string | null
@@ -52,6 +53,8 @@ export interface Shop {
   receipt_prefix: string
   invoice_prefix: string
   receipt_footer: string
+  /** How the signed-in user relates to this shop (from /me/shops): owner or a staff role. */
+  access?: import('./access').ShopAccess
 }
 
 export interface Product {
@@ -174,6 +177,9 @@ export interface Order {
   shipped_at: string | null
   /** items + shipping (when charged at checkout) + COD fee */
   grand_total_cents: number
+  /** Coupon + points taken off the goods (promo module); grand_total_cents is net of it. */
+  discount_cents?: number
+  platform_discount_cents?: number
 }
 
 export type DeliveryType = 'branch' | 'home'
@@ -448,6 +454,7 @@ export interface SocialOrder {
   confirmed_at: string | null
   paid_at: string | null
   created_at: string
+  updated_at: string
   carrier_code: string | null
   delivery_type: DeliveryType
   fee_payer: FeePayer
@@ -458,6 +465,9 @@ export interface SocialOrder {
   cod_collected_at: string | null
   cod_remitted_at: string | null
   shipped_at: string | null
+  /** Coupon + points taken off (promo module); total_cents is already net of it. */
+  discount_cents?: number
+  platform_discount_cents?: number
 }
 
 export interface SocialOrderDoc {
@@ -469,6 +479,8 @@ export interface SocialOrderDoc {
   comments?: { message: string; result: string; created_at: string }[]
   /** Public checkout only: the shop's enabled couriers. */
   shipping_options?: ShippingOption[]
+  /** Seller status change only: whether the customer was messaged in their chat. */
+  notify?: { status: 'sent' | 'failed' | 'none' | 'unsupported'; error?: string; text?: string }
 }
 
 /** Key vehicle facts attached to catalog products. */

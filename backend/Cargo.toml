@@ -1,9 +1,30 @@
-[package]
-name = "zaokaiy-api"
-version = "0.1.0"
+# zaokaiy super-app backend — one crate per core, composed by the gateway.
+#
+#   kernel      shared infra: config, errors + Lao i18n, auth (JWT), crypto, storage, media processing,
+#               the core registry (routes, listing extensions, hooks, tax sources) and baseline migrations
+#   platform    identity (login, social login), shops, corporate KYC
+#   commerce    products, catalog, orders, reseller network, POS, social selling, ads, AI
+#   vehicle     car / motorbike showroom (extends commerce listings)
+#   restaurant  menus, tables (QR), kitchen orders
+#   insurance   insurance plans, quotes, applications → policies
+#   finance     tax / VAT settings, tax-agent mandates, monthly filings
+#   gateway     the `zaokaiy-api` binary: runs any set of cores locally and proxies the rest
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.2.0"
 edition = "2021"
 
-[dependencies]
+[workspace.dependencies]
+kernel = { path = "crates/kernel" }
+platform = { path = "crates/platform" }
+commerce = { path = "crates/commerce" }
+vehicle = { path = "crates/vehicle" }
+restaurant = { path = "crates/restaurant" }
+insurance = { path = "crates/insurance" }
+finance = { path = "crates/finance" }
 axum = { version = "0.8", features = ["macros", "multipart"] }
 tokio = { version = "1", features = ["full"] }
 sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "json", "macros", "migrate"] }
@@ -14,7 +35,7 @@ argon2 = "0.5"
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 tower-http = { version = "0.6", features = ["cors", "trace", "fs", "set-header"] }
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
 thiserror = "2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
@@ -32,6 +53,7 @@ hex = "0.4"
 base64 = "0.22"
 webp = "0.3"
 aes-gcm = "0.10"
+futures-util = "0.3"
 sha1 = "0.10"
 qrcode = { version = "0.14", default-features = false, features = ["svg"] }
 

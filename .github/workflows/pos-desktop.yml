@@ -1,0 +1,88 @@
+# Builds the zaokaiy POS desktop app (pos-desktop/) for Windows and macOS.
+#  • Pull requests touching pos-desktop/: build check (artifacts attached to the run).
+#  • Tag `pos-v*` (e.g. pos-v0.1.0): builds installers and attaches them to a draft GitHub release.
+# Optional repository variable NUXT_PUBLIC_DEFAULT_API_BASE pre-fills the server address on the
+# pairing screen (e.g. https://your-domain.com/api). Signing secrets are optional — see pos-desktop/README.md.
+name: POS desktop
+
+on:
+  push:
+    tags: ['pos-v*']
+  pull_request:
+    paths: ['pos-desktop/**', '.github/workflows/pos-desktop.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: pos-desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Linux libraries for Tauri
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev librsvg2-dev libayatana-appindicator3-dev
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with: { workspaces: pos-desktop/src-tauri }
+      - name: Rust tests (money, local database, printer)
+        working-directory: pos-desktop/src-tauri
+        run: cargo test
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: pos-desktop/package-lock.json }
+      - name: UI typecheck
+        working-directory: pos-desktop
+        run: npm ci && npx nuxt typecheck
+
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            args: ''
+          - platform: macos-latest
+            args: '--target universal-apple-darwin'
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: pos-desktop/package-lock.json }
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - uses: swatinem/rust-cache@v2
+        with: { workspaces: pos-desktop/src-tauri }
+      - name: Install UI dependencies
+        working-directory: pos-desktop
+        run: npm ci
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUXT_PUBLIC_DEFAULT_API_BASE: ${{ vars.NUXT_PUBLIC_DEFAULT_API_BASE }}
+          # macOS signing / notarisation (optional; unsigned builds work but Gatekeeper warns)
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          projectPath: pos-desktop
+          args: ${{ matrix.args }}
+          tagName: ${{ startsWith(github.ref, 'refs/tags/pos-v') && github.ref_name || '' }}
+          releaseName: 'zaokaiy POS ${{ github.ref_name }}'
+          releaseBody: 'Windows: run the .exe (or .msi) installer. macOS: open the .dmg and drag zaokaiy POS to Applications.'
+          releaseDraft: true
+      - name: Keep installers with the run
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: zaokaiy-pos-${{ matrix.platform }}
+          path: |
+            pos-desktop/src-tauri/target/release/bundle/nsis/*.exe
+            pos-desktop/src-tauri/target/release/bundle/msi/*.msi
+            pos-desktop/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          if-no-files-found: ignore

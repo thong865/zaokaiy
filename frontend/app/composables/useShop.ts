@@ -1,4 +1,5 @@
 import type { Shop } from '~/utils/types'
+import type { PagePermission } from '~/utils/access'
 
 /** The seller's shops and the one currently selected in the dashboard. */
 export function useShop() {
@@ -26,10 +27,20 @@ export function useShop() {
 
   async function createShop(body: Partial<Shop>) {
     const s = await api<Shop>('/shops', { method: 'POST', body })
-    shops.value.push(s)
+    shops.value.push({ ...s, access: OWNER_ACCESS })
     selectedId.value = s.id
     return s
   }
 
-  return { shops, shop, shopId, loadShops, select, createShop }
+  /** Staff permissions of the selected shop (owners and admins can do everything). */
+  const access = computed(() => shop.value?.access ?? OWNER_ACCESS)
+  const isOwner = computed(() => access.value.owner)
+  const can = (perm: PagePermission) => allowed(shop.value?.access, perm)
+  /** Put a shop returned by the API back into the list, keeping the caller's access info. */
+  function replaceShop(updated: Shop) {
+    const i = shops.value.findIndex((s) => s.id === updated.id)
+    if (i >= 0) shops.value[i] = { ...updated, access: shops.value[i]!.access }
+  }
+
+  return { shops, shop, shopId, loadShops, select, createShop, access, isOwner, can, replaceShop }
 }

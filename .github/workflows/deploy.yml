@@ -1,0 +1,139 @@
+# Deploys zaokaiy to the VPS on every push to master (or by hand: Actions → Deploy → Run workflow).
+#   1. check   — Rust unit tests + Nuxt typecheck
+#   2. build   — API and web Docker images, pushed to GitHub Container Registry (ghcr.io)
+#   3. deploy  — over SSH: update the checkout, pull the images, restart, wait for /api/health
+#                (deploy/deploy.sh — restores the previous release if the new one isn't healthy)
+#
+# Repository → Settings → Secrets and variables → Actions:
+#   secrets   SERVER_HOST, SERVER_USER, SERVER_SSH_KEY (private key whose public key is in the
+#             server user's ~/.ssh/authorized_keys), optional SERVER_PORT (default 22)
+#   variable  DEPLOY_PATH — the checkout on the server (default /opt/zaokaiy)
+# The server needs the repo cloned at DEPLOY_PATH and .env.prod filled in (DEPLOY.md, steps 4–6).
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - 'pos-desktop/**'
+      - '.github/workflows/pos-desktop.yml'
+      - '**/*.md'
+      - 'docs/**'
+      - 'scripts/**'
+  workflow_dispatch:
+    inputs:
+      skip_checks:
+        description: Skip tests and typecheck (emergency fix)
+        type: boolean
+        default: false
+
+# One deploy at a time; a newer push waits instead of cancelling a deploy halfway.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  check:
+    if: ${{ !inputs.skip_checks }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with: { workspaces: backend }
+      - name: Rust tests
+        working-directory: backend
+        run: cargo test --workspace --locked
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - name: Nuxt typecheck
+        working-directory: frontend
+        run: npm ci && npx nuxt typecheck
+
+  build:
+    needs: check
+    # runs when checks passed, or were skipped on purpose
+    if: ${{ !failure() && !cancelled() }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - name: api
+            context: backend
+          - name: web
+            context: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Image name
+        id: img
+        # ghcr.io needs a lowercase owner
+        run: echo "name=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/zaokaiy-${{ matrix.name }}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: |
+            ${{ steps.img.outputs.name }}:${{ github.sha }}
+            ${{ steps.img.outputs.name }}:latest
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,scope=${{ matrix.name }},mode=max
+
+  deploy:
+    needs: build
+    if: ${{ !failure() && !cancelled() }}
+    runs-on: ubuntu-24.04
+    # Settings → Environments → production: add required reviewers there to approve each deploy.
+    environment:
+      name: production
+      url: ${{ vars.SITE_URL }}
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Image names
+        id: img
+        run: |
+          base="${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}"
+          echo "api=$base/zaokaiy-api:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "web=$base/zaokaiy-web:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/opt/zaokaiy' }}
+          SHA: ${{ github.sha }}
+          API_IMAGE: ${{ steps.img.outputs.api }}
+          WEB_IMAGE: ${{ steps.img.outputs.web }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          envs: DEPLOY_PATH,SHA,API_IMAGE,WEB_IMAGE,GHCR_USER,GHCR_TOKEN
+          command_timeout: 20m
+          script: |
+            set -eu
+            cd "$DEPLOY_PATH"
+            # compose file, Caddyfile and deploy script of this commit (fails if the server copy was edited)
+            git fetch --quiet origin master
+            git merge --ff-only "$SHA"
+            # the job's token can read private packages for as long as this job runs
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            trap 'docker logout ghcr.io > /dev/null' EXIT
+            bash deploy/deploy.sh "$API_IMAGE" "$WEB_IMAGE"

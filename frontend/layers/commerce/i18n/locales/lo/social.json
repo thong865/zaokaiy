@@ -1,0 +1,200 @@
+{
+  "social": {
+    "title": "ຂາຍຜ່ານໂຊຊຽວ",
+    "nav": {
+      "board": "ກະດານໄລຟ໌",
+      "orders": "ຄຳສັ່ງຊື້ໂຊຊຽວ",
+      "channels": "ຊ່ອງທາງ",
+      "settings": "ການຕັ້ງຄ່າ"
+    },
+    "board": {
+      "intro": "ລູກຄ້າຄອມເມັ້ນ {code} ໃນໄລຟ໌ ຫຼື ໂພສ Facebook / TikTok ຂອງທ່ານ ຫຼື ສົ່ງທາງ WhatsApp — ລະບົບຈະສ້າງຄຳສັ່ງຊື້ ແລະ ຈອງສະຕັອກໃຫ້ອັດຕະໂນມັດ.",
+      "live": "ກຳລັງໄລຟ໌ · {title}",
+      "since": "ເລີ່ມ {time}",
+      "endLive": "ຈົບໄລຟ໌",
+      "noSession": "ບໍ່ມີໄລຟ໌ທີ່ກຳລັງດຳເນີນ.",
+      "noSessionHint": "ຄອມເມັ້ນຍັງສ້າງຄຳສັ່ງຊື້ໄດ້ຕາມປົກກະຕິ — ການເປີດໄລຟ໌ພຽງແຕ່ຈັດກຸ່ມຄອມເມັ້ນສຳລັບກະດານ ແລະ ລາຍງານ.",
+      "titlePlaceholder": "ຊື່ໄລຟ໌, ເຊັ່ນ: ຊຸດກະໂປງວັນສຸກ",
+      "goLive": "● ເລີ່ມໄລຟ໌",
+      "defaultTitle": "ໄລຟ໌ {date}",
+      "stats": {
+        "orders": "ຄຳສັ່ງຊື້",
+        "revenue": "ລາຍຮັບ",
+        "buyers": "ຜູ້ຊື້",
+        "comments": "ຄອມເມັ້ນ"
+      },
+      "productCodes": "ລະຫັດສິນຄ້າ",
+      "autoAssign": "ກຳນົດລະຫັດອັດຕະໂນມັດ",
+      "soldOut": "ໝົດແລ້ວ",
+      "left": "ເຫຼືອ {n}",
+      "claimedBuyers": "ຈອງແລ້ວ {claimed} · ຜູ້ຊື້ {n} ຄົນ",
+      "emptyTitle": "ຍັງບໍ່ມີລະຫັດສິນຄ້າ",
+      "emptyText": "ກຳນົດລະຫັດສັ້ນໃຫ້ສິນຄ້າ (A01, A02…) ເພື່ອໃຫ້ລູກຄ້າສັ່ງຊື້ຜ່ານຄອມເມັ້ນໄດ້.",
+      "stream": "ຄອມເມັ້ນ ແລະ ຂໍ້ຄວາມ",
+      "ordersOnly": "ສະເພາະຄຳສັ່ງຊື້",
+      "testComment": "ທົດລອງຄອມເມັ້ນ",
+      "testCommentHint": "(ຕົວຈຳລອງ — ບໍ່ຕ້ອງໃຊ້ບັນຊີຈິງ)",
+      "customerName": "ຊື່ລູກຄ້າ",
+      "randomBuyer": "ສຸ່ມຜູ້ຊື້",
+      "messagePlaceholder": "ເຊັ່ນ: CF A01 x2",
+      "send": "ສົ່ງ",
+      "waiting": "ກຳລັງລໍຖ້າຄອມເມັ້ນ… ລອງໃຊ້ຕົວຈຳລອງດ້ານເທິງ.",
+      "result": {
+        "claimed": "ສັ່ງຊື້",
+        "partial": "ໝົດບາງລາຍການ",
+        "sold_out": "ໝົດແລ້ວ",
+        "ignored": "ແຊັດ",
+        "blocked": "ຖືກບລັອກ",
+        "error": "ຜິດພາດ"
+      },
+      "reply": {
+        "sent": "ຕອບກັບແລ້ວ",
+        "simulated": "ຕອບກັບ (ຈຳລອງ)",
+        "failed": "ຕອບກັບບໍ່ສຳເລັດ",
+        "unsupported": "ຕອບກັບຜ່ານຕົວສົ່ງຕໍ່"
+      }
+    },
+    "orders": {
+      "tabs": {
+        "open": "ລໍຖ້າລູກຄ້າ",
+        "confirmed": "ລໍຖ້າກວດການຊຳລະ",
+        "paid": "ລໍຖ້າຈັດສົ່ງ"
+      },
+      "hintOpen": "ລໍຖ້າລູກຄ້າຊຳລະເງິນ · ຈອງໄວ້ຮອດ {date}",
+      "hintPaidRef": "ລູກຄ້າແຈ້ງວ່າຊຳລະແລ້ວ · ເລກອ້າງອີງ {ref}",
+      "hintAddress": "ຢືນຢັນທີ່ຢູ່ແລ້ວ, ລໍຖ້າການຊຳລະ",
+      "searchPlaceholder": "ເລກຄຳສັ່ງຊື້, ຊື່ ຫຼື ເບີໂທ",
+      "items": "ລາຍການ",
+      "emptyTitle": "ຍັງບໍ່ມີຄຳສັ່ງຊື້ໂຊຊຽວ",
+      "emptyText": "ຄຳສັ່ງຊື້ຈະສະແດງຢູ່ນີ້ເມື່ອລູກຄ້າຄອມເມັ້ນລະຫັດສິນຄ້າ.",
+      "openBoard": "ເປີດກະດານໄລຟ໌"
+    },
+    "order": {
+      "back": "← ຄຳສັ່ງຊື້ໂຊຊຽວ",
+      "invoice": "ໃບແຈ້ງໜີ້",
+      "packingSlip": "ໃບລາຍການສິນຄ້າ",
+      "steps": {
+        "open": "ຈອງແລ້ວ",
+        "confirmed": "ຢືນຢັນທີ່ຢູ່ແລ້ວ",
+        "paid": "ຊຳລະແລ້ວ",
+        "shipped": "ຈັດສົ່ງແລ້ວ",
+        "completed": "ສົ່ງເຖິງແລ້ວ"
+      },
+      "code": "ລະຫັດ",
+      "item": "ລາຍການ",
+      "amount": "ຈຳນວນເງິນ",
+      "conversation": "ການສົນທະນາ",
+      "nextStep": "ຂັ້ນຕອນຕໍ່ໄປ",
+      "theCustomer": "ລູກຄ້າ",
+      "waitingAddress": "ລໍຖ້າ {name} ຢືນຢັນທີ່ຢູ່. ຈອງໄວ້ຮອດ {date}.",
+      "copied": "ສຳເນົາແລ້ວ ✓",
+      "copyLink": "ສຳເນົາລິ້ງຊຳລະເງິນ",
+      "markPaid": "ໝາຍວ່າຊຳລະແລ້ວ",
+      "customerReports": "ລູກຄ້າແຈ້ງການຊຳລະ:",
+      "awaitingPayment": "ລໍຖ້າການຊຳລະ.",
+      "paymentReceived": "ໄດ້ຮັບເງິນແລ້ວ",
+      "trackingPlaceholder": "ເລກພັດສະດຸ (Kerry, Flash, EMS…)",
+      "markShipped": "ໝາຍວ່າຈັດສົ່ງແລ້ວ",
+      "tracking": "ເລກພັດສະດຸ:",
+      "markDelivered": "ໝາຍວ່າສົ່ງເຖິງແລ້ວ",
+      "orderIs": "ຄຳສັ່ງຊື້ນີ້: {status}.",
+      "cancelRelease": "ຍົກເລີກ ແລະ ຄືນສະຕັອກ",
+      "customerId": "ID {id}",
+      "noAddress": "ຍັງບໍ່ມີທີ່ຢູ່ຈັດສົ່ງ.",
+      "notified": "ແຈ້ງລູກຄ້າທາງແຊັດແລ້ວ.",
+      "notifyFailed": "ສົ່ງຂໍ້ຄວາມຫາລູກຄ້າບໍ່ໄດ້ ({error}). ກະລຸນາສົ່ງລິ້ງຄຳສັ່ງຊື້ໃຫ້ລູກຄ້າເອງ."
+    },
+    "channels": {
+      "serverSetup": "ຕັ້ງຄ່າເຊີບເວີ:",
+      "needVerifyToken": "ຕັ້ງ {env} ໃນໄຟລ໌ .env ຂອງ API ເພື່ອເປີດໃຊ້ webhook ຂອງ Facebook/WhatsApp.",
+      "needAppSecret": "ຕັ້ງ {env} ເພື່ອກວດລາຍເຊັນຂອງ webhook.",
+      "needHttps": "Webhook ຕ້ອງເຂົ້າເຖິງ API ຂອງທ່ານຜ່ານ HTTPS ສາທາລະນະ (ເຊັ່ນ: ໂດເມນ ຫຼື ທັນເນວ Cloudflare Tunnel / ngrok ໃນຂະນະທົດສອບ).",
+      "lastEvent": "ເຫດການລ່າສຸດ {ago}",
+      "noEvents": "ຍັງບໍ່ມີເຫດການ",
+      "autoReply": "ຕອບກັບອັດຕະໂນມັດ",
+      "active": "ເປີດໃຊ້",
+      "disconnect": "ຕັດການເຊື່ອມຕໍ່",
+      "confirmDisconnect": "ຕັດການເຊື່ອມຕໍ່ {name} ບໍ?",
+      "accessToken": "Access token",
+      "tokenSaved": "•••••••• ບັນທຶກແລ້ວ — ວາງໃໝ່ເພື່ອປ່ຽນ",
+      "pasteToken": "ວາງ access token",
+      "callbackUrl": "Webhook callback URL",
+      "ingestUrl": "Ingest URL (ມີລາຍເຊັນ)",
+      "signingSecret": "ລະຫັດລັບສຳລັບລາຍເຊັນ",
+      "rotate": "ສ້າງໃໝ່",
+      "curlExample": "ຕົວຢ່າງຄຳຮ້ອງ (curl)",
+      "connectChannel": "ເຊື່ອມຕໍ່ຊ່ອງທາງ",
+      "connect": "ເຊື່ອມຕໍ່",
+      "namePlaceholder": "ຊື່, ເຊັ່ນ: {example}",
+      "nameExample": {
+        "whatsapp": "WhatsApp ຮ້ານ",
+        "webhook": "n8n LINE bot",
+        "page": "ເພຈຫຼັກ"
+      },
+      "tokenStored": "ເກັບໄວ້ໃນເຊີບເວີ ແລະ ຈະບໍ່ສະແດງອີກ.",
+      "guides": {
+        "facebook": {
+          "title": "Facebook Page (ໂພສ, ໄລຟ໌ ແລະ Messenger)",
+          "idLabel": "Page ID",
+          "idHelp": "Facebook → ເພຈຂອງທ່ານ → About → Page transparency → Page ID",
+          "tokenHelp": "Page access token ທີ່ມີສິດ pages_manage_engagement, pages_read_user_content ແລະ pages_messaging",
+          "s1": "ສ້າງ Meta app (developers.facebook.com) ແລ້ວເພີ່ມຜະລິດຕະພັນ Webhooks + Messenger.",
+          "s2": "Webhooks → Page: ໃສ່ callback URL ດ້ານລຸ່ມ, verify token = META_VERIFY_TOKEN ຈາກໄຟລ໌ .env ຂອງ API. ສະໝັກຮັບ “feed” ແລະ “messages”.",
+          "s3": "ຕັ້ງ META_APP_SECRET ໃນໄຟລ໌ .env ຂອງ API ເພື່ອໃຫ້ທຸກ webhook ຖືກກວດລາຍເຊັນ.",
+          "s4": "ວາງ Page ID ແລະ Page access token ແບບໃຊ້ໄດ້ດົນ (long-lived) ຢູ່ນີ້."
+        },
+        "whatsapp": {
+          "title": "WhatsApp Business (Cloud API)",
+          "idLabel": "Phone number ID",
+          "idHelp": "WhatsApp Manager → API setup → Phone number ID (ບໍ່ແມ່ນເບີໂທລະສັບ)",
+          "tokenHelp": "System-user access token ທີ່ມີສິດ whatsapp_business_messaging",
+          "s1": "ໃນ Meta app ຂອງທ່ານ ເພີ່ມຜະລິດຕະພັນ WhatsApp ແລະ ເຊື່ອມຕໍ່ເບີທຸລະກິດຂອງທ່ານ.",
+          "s2": "Webhooks → WhatsApp Business Account: ໃຊ້ callback URL ແລະ verify token ດຽວກັນກັບ Facebook. ສະໝັກຮັບ “messages”.",
+          "s3": "ວາງ Phone number ID ແລະ system-user token ແບບຖາວອນຢູ່ນີ້.",
+          "s4": "ລູກຄ້າສົ່ງຂໍ້ຄວາມຫາເບີ WhatsApp ຂອງທ່ານ, ເຊັ່ນ: “ສັ່ງ A01 2”. ລະບົບຈະຕອບກັບເປັນຂໍ້ຄວາມ WhatsApp (ພາຍໃນໄລຍະບໍລິການ 24 ຊົ່ວໂມງ)."
+        },
+        "tiktok": {
+          "title": "TikTok (ຄອມເມັ້ນ LIVE / ວິດີໂອ)",
+          "idLabel": "Account open_id",
+          "idHelp": "open_id ຂອງບັນຊີ TikTok ຂອງທ່ານ ຈາກ TikTok developer portal",
+          "tokenHelp": "ບໍ່ຈຳເປັນ — TikTok ບໍ່ມີ API ສາທາລະນະສຳລັບຕອບກັບຄອມເມັ້ນ LIVE",
+          "s1": "TikTok ເປີດໃຫ້ເຂົ້າເຖິງຄອມເມັ້ນ LIVE ສະເພາະພາດເນີທີ່ໄດ້ຮັບອະນຸມັດ (ໂຄງການ TikTok Shop / LIVE partner). ຖ້າທ່ານມີສິດ, ໃຫ້ຕັ້ງ webhook ໄປທີ່ TikTok URL ດ້ານລຸ່ມ ແລະ ຕັ້ງ TIKTOK_CLIENT_SECRET.",
+          "s2": "ຖ້າບໍ່ມີ, ໃຫ້ໃຊ້ເຄື່ອງມືສົ່ງຕໍ່ຄອມເມັ້ນ (ຫຼື workflow ຂອງ n8n) ທີ່ສົ່ງຄອມເມັ້ນມາຫາຊ່ອງທາງ “Webhook” — ເບິ່ງດ້ານລຸ່ມ.",
+          "s3": "ລູກຄ້າຈະເຫັນລິ້ງຊຳລະເງິນເມື່ອທ່ານອ່ານໃນໄລຟ໌ ຫຼື ປັກໝຸດໄວ້; ບໍ່ສາມາດຕອບກັບອັດຕະໂນມັດໄດ້."
+        },
+        "webhook": {
+          "title": "Webhook (n8n, Make, Zapier, LINE bot, ກຳນົດເອງ)",
+          "s1": "POST JSON ໄປທີ່ ingest URL ພ້ອມລາຍເຊັນ HMAC-SHA256 ຂອງ raw body ໂດຍໃຊ້ລະຫັດລັບຂອງຊ່ອງທາງນີ້.",
+          "s2": "ຄຳຕອບຈະມີ reply_text ແລະ checkout_url — ໃຫ້ສົ່ງກັບໄປຫາລູກຄ້າຈາກ workflow ຂອງທ່ານ."
+        }
+      }
+    },
+    "settings": {
+      "howRead": "ວິທີອ່ານຄອມເມັ້ນ",
+      "triggerWords": "ຄຳທີ່ໃຊ້ສັ່ງຊື້",
+      "removeWord": "ເອົາ {word} ອອກ",
+      "addWord": "ເພີ່ມຄຳ",
+      "understood": "ຮູບແບບທີ່ລະບົບເຂົ້າໃຈ:",
+      "requireTrigger": "ຮັບສະເພາະຄອມເມັ້ນທີ່ມີຄຳທີ່ໃຊ້ສັ່ງຊື້",
+      "requireTriggerHint": "ແນະນຳສຳລັບໄລຟ໌ທີ່ມີຄົນຄອມເມັ້ນຫຼາຍ. ເມື່ອປິດ, “{example}” ກໍສັ່ງຊື້ໄດ້ — ແຕ່ຄຳຖາມເຊັ່ນ “{question}” ຈະຖືກຂ້າມສະເໝີ.",
+      "questionExample": "A01 ລາຄາເທົ່າໃດ?",
+      "holdHours": "ຈອງສະຕັອກໄວ້ (ຊົ່ວໂມງ)",
+      "maxQty": "ສູງສຸດຕໍ່ລາຍການຕໍ່ລູກຄ້າ",
+      "shippingFee": "ຄ່າຈັດສົ່ງ ({cur})",
+      "autoReplies": "ຕອບກັບອັດຕະໂນມັດ",
+      "placeholders": "ຕົວແປທີ່ໃຊ້ໄດ້:",
+      "presets": "ເລີ່ມຈາກແມ່ແບບ:",
+      "useLao": "ໃຊ້ແມ່ແບບພາສາລາວ",
+      "useThai": "ໃຊ້ແມ່ແບບພາສາໄທ",
+      "useEnglish": "ໃຊ້ແມ່ແບບພາສາອັງກິດ",
+      "whenReserved": "ເມື່ອຈອງສິນຄ້າສຳເລັດ",
+      "whenSoldOut": "ເມື່ອສິນຄ້າໝົດ",
+      "preview": "ຕົວຢ່າງ:",
+      "paymentInstructions": "ວິທີຊຳລະເງິນ (ສະແດງໃນໜ້າຊຳລະເງິນ)",
+      "paymentPlaceholder": "BCEL One 010-12-00-01234567 (ຮ້ານ ດອກຈຳປາ) · LDB 0302-000-12345",
+      "save": "ບັນທຶກການຕັ້ງຄ່າ",
+      "sampleName": "ນ້ອຍ",
+      "sampleItems": "A01 ຊຸດຜ້າໄໝ x2"
+    }
+  }
+}

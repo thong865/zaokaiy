@@ -104,7 +104,8 @@
       "settings": "Shop settings",
       "shipping": "Delivery",
       "cod": "COD",
-      "barcodes": "Barcode labels"
+      "barcodes": "Barcode labels",
+      "account": "Account"
     },
     "adminNav": {
       "review": "Review queue",
@@ -184,6 +185,25 @@
       "shop": "Shop",
       "sell": "Sell",
       "account": "Account"
+    },
+    "superApp": {
+      "services": "Services",
+      "shop": "Shop",
+      "shopHint": "Products from local sellers",
+      "vehiclesHint": "Cars & motorbikes",
+      "food": "Food",
+      "foodHint": "Order from restaurants",
+      "insurance": "Insurance",
+      "insuranceHint": "Quote & apply online",
+      "tax": "Tax & VAT"
+    },
+    "verticals": {
+      "label": "Store type",
+      "hint": "Changes how your storefront looks and which tools you get in the dashboard.",
+      "general": "General shop",
+      "vehicle": "Vehicle showroom",
+      "restaurant": "Restaurant",
+      "insurance": "Insurance agent"
     }
   }
 }

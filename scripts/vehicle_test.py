@@ -49,7 +49,7 @@ sid = shop["id"]
 assert shop["vertical"] == "vehicle"
 call("PATCH", f"/shops/{sid}", {"phone": "020 5999 1111", "address": "Dongdok, Vientiane"}, dealer)
 e = call("PATCH", f"/shops/{sid}", {"vertical": "x"}, dealer, expect=400, headers=LO)
-assert e["message"] == "ປະເພດຮ້ານຕ້ອງເປັນ ຮ້ານທົ່ວໄປ ຫຼື ຮ້ານຂາຍລົດ", e
+assert e["message"] == "ປະເພດຮ້ານນີ້ບໍ່ເປີດໃຫ້ໃຊ້", e
 call("PATCH", f"/admin/shops/{sid}", {"auto_approve": True}, admin)
 cats = {c["slug"]: c["id"] for c in call("GET", "/categories")}
 assert "vehicles-cars" in cats and "vehicles-motorbikes" in cats

@@ -1,0 +1,55 @@
+{
+  "imgsuggest": {
+    "nav": { "admin": "Stock photos" },
+    "source": { "stock": "Stock", "own": "Yours", "shared": "Shop" },
+    "strip": {
+      "title": "Photos for \"{q}\"",
+      "hint": "Tap a photo to add it to this product. It is copied into your media library.",
+      "use": "Use",
+      "from": "from {shop}",
+      "hide": "Hide suggestions"
+    },
+    "sharing": {
+      "label": "Let other sellers use my product photos",
+      "help": "Your live product photos can be suggested to other shops selling the same item. They get their own copy; yours never change.",
+      "picked": "used by other shops {n} time | used by other shops {n} times"
+    },
+    "admin": {
+      "title": "Stock photos",
+      "subtitle": "Photos suggested to sellers while they type a product name. Add keywords in every language customers use — English, ລາວ, ไทย — so \"beer lao\", \"ເບຍລາວ\" and \"เบียร์ลาว\" all find the same photo.",
+      "statPhotos": "stock photos",
+      "statPicks": "photos picked by sellers",
+      "statSharing": "shops sharing their photos",
+      "tabs": { "library": "Library", "promote": "From shop photos", "synonyms": "Synonyms" },
+      "search": "Search title or keyword",
+      "add": "Add a stock photo",
+      "choose": "Choose a JPG, PNG or WebP",
+      "fTitle": "Title",
+      "titlePh": "e.g. Beerlao Original 640ml bottle",
+      "fKeywords": "Keywords (comma separated, any language)",
+      "keywordsPh": "beer, bottle, ເບຍລາວ, เบียร์ลาว",
+      "fBrand": "Brand",
+      "fCredit": "Source / licence",
+      "rights": "Only add photos you have the right to share with every seller (your own shots, a brand's press kit, or with the owner's permission).",
+      "upload": "Upload",
+      "uploaded": "Photo added to the stock library.",
+      "used": "picked {n} time | picked {n} times",
+      "hidden": "Hidden",
+      "hide": "Hide from suggestions",
+      "show": "Show in suggestions",
+      "deleteConfirm": "Delete \"{title}\"? Shops that already picked it keep their copy.",
+      "deleted": "Stock photo deleted.",
+      "empty": "No stock photos yet",
+      "emptyText": "Upload brand shots and common products so sellers can list faster.",
+      "promoteIntro": "Find product photos in shops (for example a brand's official distributor) and copy them into the stock library. Ask the shop for permission first.",
+      "promoteSearch": "Product name, e.g. beer lao",
+      "promoteTitle": "Add to stock library",
+      "promoteHelp": "A copy of this photo from {shop} goes into the stock library. The shop's own photo is not changed.",
+      "creditFrom": "Photo: {shop}",
+      "promote": "Add to library",
+      "promoted": "Copied into the stock library.",
+      "synIntro": "Words that mean the same product. Typing any of them finds photos tagged with the others. Spaces and capitals don't matter.",
+      "synPh": "Comma separated, e.g. beer lao, ເບຍລາວ, เบียร์ลาว"
+    }
+  }
+}

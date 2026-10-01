@@ -1,0 +1,165 @@
+{
+  "restaurant": {
+    "open": {
+      "label": "Restaurant",
+      "hint": "Menu, QR table ordering, takeaway & delivery"
+    },
+    "nav": {
+      "kitchen": "Kitchen board",
+      "menu": "Menu",
+      "tables": "Tables & QR",
+      "settings": "Ordering"
+    },
+    "mode": {
+      "dine_in": "Dine in",
+      "takeaway": "Takeaway",
+      "delivery": "Delivery"
+    },
+    "status": {
+      "new": "Received",
+      "accepted": "Accepted",
+      "preparing": "Cooking",
+      "ready": "Ready",
+      "served": "Served",
+      "completed": "Done",
+      "cancelled": "Cancelled"
+    },
+    "menu": {
+      "other": "More",
+      "prep": "~{n} min",
+      "table": "Table {label}",
+      "closed": "Not taking orders right now — you can still browse the menu.",
+      "emptyTitle": "Menu coming soon",
+      "emptyText": "This restaurant hasn't added dishes yet.",
+      "spicy": "Spicy",
+      "soldOut": "Sold out",
+      "less": "One less",
+      "more": "One more",
+      "add": "Add",
+      "viewBasket": "View basket"
+    },
+    "order": {
+      "title": "Your order",
+      "scanHint": "Eating here? Scan the QR code on your table to order to it.",
+      "itemNote": "Note for the kitchen (optional)",
+      "service": "Service charge {pct}",
+      "serviceShort": "Service charge",
+      "name": "Your name",
+      "phone": "Phone",
+      "address": "Delivery address",
+      "note": "Note",
+      "notePlaceholder": "Allergies, no MSG, extra chili…",
+      "place": "Place order · {total}"
+    },
+    "track": {
+      "notFound": "Order not found",
+      "cancelled": "This order was cancelled by the restaurant.",
+      "progress": "Order progress",
+      "eta": "Usually ready in about {n} minutes.",
+      "paid": "Paid",
+      "payAtCounter": "Pay at the counter or to the rider",
+      "backToMenu": "Back to menu",
+      "call": "Call restaurant"
+    },
+    "table": {
+      "notFound": "This table code is no longer valid — ask the staff for help."
+    },
+    "board": {
+      "title": "Kitchen board",
+      "subtitle": "Today's orders — updates every 15 seconds.",
+      "view": {
+        "active": "Open",
+        "done": "Done"
+      },
+      "refresh": "Refresh",
+      "emptyTitle": "No orders yet",
+      "emptyText": "Orders from your menu and table QR codes appear here.",
+      "openMenu": "Open menu",
+      "new": "New",
+      "cooking": "Cooking",
+      "ready": "Ready",
+      "toPay": "Served / to pay",
+      "paid": "Paid",
+      "unpaid": "Unpaid",
+      "to": {
+        "accepted": "Accept",
+        "preparing": "Start cooking",
+        "ready": "Ready",
+        "served": "Served",
+        "completed": "Complete"
+      },
+      "markPaidCash": "Paid cash",
+      "markPaidTransfer": "Paid transfer",
+      "confirmCancel": "Yes, cancel"
+    },
+    "menuEditor": {
+      "title": "Menu",
+      "subtitle": "Sections and dishes customers see on your menu.",
+      "addDish": "Add dish",
+      "editDish": "Edit dish",
+      "dish": "Dish",
+      "newSection": "New section",
+      "sectionPlaceholder": "Noodles, Drinks…",
+      "nameLo": "Name in Lao",
+      "addSection": "Add section",
+      "emptyTitle": "Your menu is empty",
+      "emptyText": "Add a section, then your dishes.",
+      "available": "Available",
+      "noDishes": "No dishes in this section yet.",
+      "price": "Price ({cur})",
+      "section": "Section",
+      "image": "Photo URL"
+    },
+    "tables": {
+      "title": "Tables & QR codes",
+      "subtitle": "Print the QR codes and put them on the tables — guests scan to order to their table.",
+      "print": "Print QR codes",
+      "label": "Table name",
+      "seats": "Seats",
+      "add": "Add table",
+      "emptyTitle": "No tables yet",
+      "emptyText": "Add your tables to get a QR code for each one.",
+      "seatsN": "{n} seats",
+      "qrFor": "QR code for table {label}",
+      "scan": "Scan to see the menu and order",
+      "test": "Test",
+      "disable": "Disable",
+      "enable": "Enable",
+      "newCode": "New code"
+    },
+    "settings": {
+      "title": "Ordering",
+      "open": "Taking orders",
+      "openHint": "Turn off when the kitchen is closed — the menu stays visible.",
+      "service": "Service charge (%)",
+      "prep": "Usual preparation time (minutes)"
+    },
+    "overview": {
+      "acceptingNow": "Taking orders now",
+      "notAccepting": "Not taking orders — turn it on in Ordering",
+      "revenue": "Paid today",
+      "revenueHint": "Paid orders, service charge included",
+      "orders": "Orders today",
+      "ordersHint": "All tickets since midnight",
+      "open": "Open orders",
+      "openHint": "Waiting, cooking or unpaid",
+      "dishes": "Dishes available",
+      "dishesHint": "{n} tables with QR codes",
+      "setupTitle": "Get ready for your first order",
+      "setupMenu": "Add your menu",
+      "setupTables": "Add tables and print QR codes",
+      "setupSettings": "Choose dine-in, takeaway, delivery"
+    },
+    "places": {
+      "title": "Order food",
+      "subtitle": "Restaurants on zaokaiy — takeaway, delivery or scan at the table.",
+      "search": "Search restaurants",
+      "homeTitle": "Order food",
+      "seeAll": "All restaurants",
+      "closed": "Closed",
+      "from": "from {price}",
+      "emptyTitle": "No restaurants yet",
+      "emptyText": "Restaurants that join zaokaiy will appear here."
+    }
+  }
+}

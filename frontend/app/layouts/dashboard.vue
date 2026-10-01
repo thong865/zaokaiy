@@ -1,55 +1,28 @@
 <script setup lang="ts">
-const { shops, shop, select } = useShop()
+const { shops, shop, select, can } = useShop()
 const { user, logout } = useAuth()
 const route = useRoute()
 const open = ref(false)
 watch(() => route.fullPath, () => (open.value = false))
 
 const { t } = useI18n()
-const groups = computed(() => [
-  {
-    label: t('common.dashNav.shop'),
-    items: [
-      { to: '/dashboard', label: t('common.dashNav.overview'), icon: 'dashboard' },
-      { to: '/dashboard/products', label: t('common.dashNav.products'), icon: 'package' },
-      { to: '/dashboard/categories', label: t('common.dashNav.categories'), icon: 'folder' },
-      { to: '/dashboard/inventory', label: t('common.dashNav.inventory'), icon: 'archive' },
-      { to: '/dashboard/media', label: t('common.dashNav.media'), icon: 'image' },
-      ...(shop.value?.vertical === 'vehicle' ? [{ to: '/dashboard/leads', label: t('vehicle.nav.leads'), icon: 'phone' }] : []),
-      { to: '/dashboard/orders', label: t('common.dashNav.orders'), icon: 'receipt' },
-      { to: '/dashboard/shipping', label: t('common.dashNav.shipping'), icon: 'truck' },
-      { to: '/dashboard/cod', label: t('common.dashNav.cod'), icon: 'banknote' },
-      { to: '/pos', label: t('common.dashNav.pos'), icon: 'calculator' },
-      { to: '/dashboard/pos-sales', label: t('common.dashNav.posSales'), icon: 'file' },
-      { to: '/dashboard/barcodes', label: t('common.dashNav.barcodes'), icon: 'barcode' },
-    ],
-  },
-  {
-    label: t('common.dashNav.social'),
-    items: [
-      { to: '/dashboard/social', label: t('common.dashNav.socialLive'), icon: 'message' },
-    ],
-  },
-  {
-    label: t('common.dashNav.network'),
-    items: [
-      { to: '/dashboard/partners', label: t('common.dashNav.partners'), icon: 'users' },
-      { to: '/dashboard/marketplace', label: t('common.dashNav.marketplace'), icon: 'globe' },
-      { to: '/dashboard/commissions', label: t('common.dashNav.commissions'), icon: 'percent' },
-    ],
-  },
-  {
-    label: t('common.dashNav.grow'),
-    items: [
-      { to: '/dashboard/ads', label: t('common.dashNav.ads'), icon: 'megaphone' },
-      { to: '/dashboard/content', label: t('common.dashNav.content'), icon: 'pen' },
-      { to: '/dashboard/assistant', label: t('common.dashNav.assistant'), icon: 'sparkles' },
-      ...(shop.value?.entity_type === 'business' ? [{ to: '/dashboard/verification', label: t('kyb.nav'), icon: 'shield' }] : []),
-      { to: '/dashboard/settings', label: t('common.dashNav.settings'), icon: 'settings' },
-    ],
-  },
-])
-const isActive = (to: string) => (to === '/dashboard' ? route.path === to : route.path.startsWith(to))
+const { withModules } = useModules()
+// Navigation is contributed by the cores (layers/*/app/plugins/core.ts), filtered by shop type,
+// extended by the enabled plug-in modules and — for staff — by what their role allows.
+const { nav } = useCores()
+const groups = computed(() => {
+  const base = nav(shop.value?.vertical, shop.value?.entity_type === 'business')
+  // Plug-in modules (COD risk, POS terminals …) extend the product-selling shop types only.
+  const sellsProducts = base.some((g) => g.items.some((i) => i.to === '/dashboard/products'))
+  return base
+    .map((g) => {
+      const items = g.items.map((i) => ({ to: i.to, label: t(i.label), icon: i.icon }))
+      return { label: t(g.label), items: sellsProducts ? withModules('dashboardNav', items, g.id) : items }
+    })
+    .map((g) => ({ ...g, items: g.items.filter((it) => can(pagePermission(it.to))) }))
+    .filter((g) => g.items.length)
+})
+const isActive = (to: string) => (to === '/dashboard' ? route.path === to : route.path === to || route.path.startsWith(`${to}/`))
 // Nuxt UI navigation: one list per group, headed by a label item.
 const menu = computed(() =>
   groups.value.map((g) => [
@@ -62,7 +35,7 @@ const ICON: Record<string, string> = {
   pen: 'pen-line', settings: 'sliders-horizontal', shield: 'shield-check', receipt: 'receipt',
 }
 const shopItems = computed(() => [
-  shops.value.map((s) => ({ label: s.name, avatar: { text: s.name.slice(0, 1).toUpperCase() }, onSelect: () => select(s.id), active: s.id === shop.value?.id })),
+  shops.value.map((s) => ({ label: s.access && !s.access.owner ? `${s.name} · ${s.access.role}` : s.name, avatar: { text: s.name.slice(0, 1).toUpperCase() }, onSelect: () => select(s.id), active: s.id === shop.value?.id })),
   [{ label: t('common.nav.viewStorefront').replace(' ↗', ''), icon: 'i-lucide-external-link', to: shop.value ? `/s/${shop.value.slug}` : '/', target: '_blank' }],
 ])
 const userItems = computed(() => [
@@ -85,7 +58,6 @@ const title = computed(() => groups.value.flatMap((g) => g.items).find((i) => is
       resizable
       :min-size="15"
       :default-size="17"
-      :max-size="22"
       :collapsed-size="4.5"
       :ui="{ header: 'px-4', body: 'px-3 gap-3', footer: 'px-3 pb-3 block' }"
     >
@@ -145,7 +117,7 @@ const title = computed(() => groups.value.flatMap((g) => g.items).find((i) => is
         </UDashboardNavbar>
       </template>
       <template #body>
-        <main class="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8 lg:py-8">
+        <main class="mx-auto w-full px-2 py-6 lg:px-8 lg:py-8">
           <slot />
         </main>
       </template>

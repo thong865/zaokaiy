@@ -328,6 +328,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
 
 [[package]]
+name = "commerce"
+version = "0.2.0"
+dependencies = [
+ "axum",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "hex",
+ "hmac",
+ "image",
+ "infer",
+ "kernel",
+ "rand 0.8.8",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "uuid",
+ "webp",
+]
+
+[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -548,6 +577,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "finance"
+version = "0.2.0"
+dependencies = [
+ "axum",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "hex",
+ "hmac",
+ "kernel",
+ "rand 0.8.8",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "find-msvc-tools"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -693,6 +748,41 @@ dependencies = [
  "memchr",
  "pin-project-lite",
  "slab",
+]
+
+[[package]]
+name = "gateway"
+version = "0.2.0"
+dependencies = [
+ "axum",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "commerce",
+ "dotenvy",
+ "finance",
+ "futures-util",
+ "hex",
+ "hmac",
+ "insurance",
+ "kernel",
+ "platform",
+ "rand 0.8.8",
+ "regex",
+ "reqwest",
+ "restaurant",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "vehicle",
 ]
 
 [[package]]
@@ -1147,6 +1237,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "insurance"
+version = "0.2.0"
+dependencies = [
+ "axum",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "hex",
+ "hmac",
+ "kernel",
+ "rand 0.8.8",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "ipnet"
 version = "2.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1201,6 +1317,38 @@ dependencies = [
  "serde",
  "serde_json",
  "simple_asn1",
+]
+
+[[package]]
+name = "kernel"
+version = "0.2.0"
+dependencies = [
+ "aes-gcm",
+ "argon2",
+ "axum",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "hex",
+ "hmac",
+ "image",
+ "infer",
+ "jsonwebtoken",
+ "object_store",
+ "rand 0.8.8",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "uuid",
+ "webp",
 ]
 
 [[package]]
@@ -1617,6 +1765,36 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4596b6d070b27117e987119b4dac604f3c58cfb0b191112e24771b2faeac1a6"
 
 [[package]]
+name = "platform"
+version = "0.2.0"
+dependencies = [
+ "argon2",
+ "axum",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "hex",
+ "hmac",
+ "infer",
+ "kernel",
+ "qrcode",
+ "rand 0.8.8",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "png"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1917,6 +2095,32 @@ dependencies = [
  "wasm-streams",
  "web-sys",
  "webpki-roots 1.0.9",
+]
+
+[[package]]
+name = "restaurant"
+version = "0.2.0"
+dependencies = [
+ "axum",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "hex",
+ "hmac",
+ "kernel",
+ "rand 0.8.8",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -2900,6 +3104,33 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426"
 
 [[package]]
+name = "vehicle"
+version = "0.2.0"
+dependencies = [
+ "axum",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "commerce",
+ "hex",
+ "hmac",
+ "kernel",
+ "rand 0.8.8",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3312,42 +3543,6 @@ dependencies = [
  "quote",
  "syn 3.0.6",
  "synstructure",
-]
-
-[[package]]
-name = "zaokaiy-api"
-version = "0.1.0"
-dependencies = [
- "aes-gcm",
- "argon2",
- "axum",
- "base64 0.22.1",
- "bytes",
- "chrono",
- "dotenvy",
- "hex",
- "hmac",
- "image",
- "infer",
- "jsonwebtoken",
- "object_store",
- "qrcode",
- "rand 0.8.8",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "sha1",
- "sha2",
- "sqlx",
- "thiserror",
- "tokio",
- "tower",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "webp",
 ]
 
 [[package]]

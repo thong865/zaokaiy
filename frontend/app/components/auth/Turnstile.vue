@@ -7,6 +7,9 @@
  */
 const props = withDefaults(defineProps<{ action?: string }>(), { action: 'auth' })
 const token = defineModel<string>({ default: '' })
+// Expose before the first `await`: expose() after an await in async setup is lost (parent ref gets no reset/pending).
+let pendingC: { readonly value: boolean } | undefined
+defineExpose({ reset, get pending() { return pendingC?.value ?? false } })
 const { data: providers } = await useAuthProviders()
 const siteKey = computed(() => providers.value.captcha_site_key)
 const { locale } = useI18n()
@@ -73,9 +76,9 @@ function reset() {
   token.value = ''
   if (widgetId) window.turnstile?.reset(widgetId)
 }
-/** True while a token is needed and not there yet (disable the submit button). */
+/** `pending`: true while a token is needed and not there yet (disable the submit button). */
 const pending = computed(() => !!siteKey.value && !token.value)
-defineExpose({ reset, pending })
+pendingC = pending
 </script>
 
 <template>

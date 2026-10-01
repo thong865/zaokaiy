@@ -85,7 +85,7 @@ ok = lambda m: print("  ✔", m)
 print("social login tests")
 
 p = call("GET", "/auth/providers")
-assert p == {"password": True, "google": True, "facebook": True, "whatsapp": True}, p
+assert p == {"password": True, "google": True, "facebook": True, "whatsapp": True, "captcha_site_key": None}, p
 ok("providers endpoint lists enabled methods")
 
 # ---- Google -------------------------------------------------------------------------------

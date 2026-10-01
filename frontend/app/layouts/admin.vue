@@ -7,13 +7,15 @@ const { data: overview } = useLazyAsyncData('admin-overview-nav', () => api<{ pe
   watch: [() => route.fullPath],
 })
 const { t } = useI18n()
-const nav = computed(() => [
-  { to: '/admin', label: t('common.adminNav.review'), icon: 'check-circle' },
-  { to: '/admin/categories', label: t('common.adminNav.categories'), icon: 'folder' },
-  { to: '/admin/shops', label: t('common.adminNav.shops'), icon: 'store' },
-  { to: '/admin/kyb', label: t('kyb.admin.nav'), icon: 'shield' },
-  { to: '/admin/carriers', label: t('common.adminNav.carriers'), icon: 'truck' },
-])
+const { withModules } = useModules()
+// Admin sections come from the cores (review + categories + couriers: commerce · shops + KYC: platform · tax: finance)
+// plus the enabled plug-in modules.
+const { adminNav } = useCores()
+const counts = computed(() => (overview.value ?? {}) as Record<string, number>)
+const nav = computed(() =>
+  withModules('adminNav', adminNav.value.map((n) => ({ to: n.to, label: t(n.label), icon: n.icon, count: n.badge ? counts.value[n.badge] ?? 0 : 0 })), undefined,
+    (i, label) => ({ to: i.to, label, icon: i.icon, count: 0 })),
+)
 const isActive = (to: string) => (to === '/admin' ? route.path === '/admin' || route.path.startsWith('/admin/products') : route.path.startsWith(to))
 </script>
 
@@ -31,7 +33,7 @@ const isActive = (to: string) => (to === '/admin' ? route.path === '/admin' || r
             v-for="n in nav"
             :key="n.to"
             :to="n.to"
-            :icon="n.icon === 'check-circle' ? 'i-lucide-circle-check' : n.icon === 'folder' ? 'i-lucide-folder-tree' : n.icon === 'shield' ? 'i-lucide-shield-check' : `i-lucide-${n.icon}`"
+            :icon="`i-lucide-${n.icon}`"
             size="md"
             :active="isActive(n.to)"
             color="neutral"
@@ -42,8 +44,7 @@ const isActive = (to: string) => (to === '/admin' ? route.path === '/admin' || r
             :class="!isActive(n.to) && 'text-white/65 hover:bg-white/10 hover:text-white'"
           >
             {{ n.label }}
-            <UBadge v-if="n.to === '/admin' && overview?.pending" :label="String(overview.pending)" size="sm" color="neutral" variant="solid" class="bg-white/20 text-white" />
-            <UBadge v-if="n.to === '/admin/kyb' && overview?.kyb_pending" :label="String(overview.kyb_pending)" size="sm" color="neutral" variant="solid" class="bg-white/20 text-white" />
+            <UBadge v-if="n.count" :label="String(n.count)" size="sm" color="neutral" variant="solid" class="bg-white/20 text-white" />
           </UButton>
         </nav>
         <div class="ml-auto flex shrink-0 items-center gap-1 text-sm">

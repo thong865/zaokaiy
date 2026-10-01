@@ -1,0 +1,44 @@
+{
+  "cms": {
+    "section": {
+      "legal": "Terms & policies",
+      "news": "News",
+      "guides": "Guides"
+    },
+    "pinned": "Pinned",
+    "lastUpdated": "Last updated {date}",
+    "readTime": "{n} min read",
+    "share": "Share",
+    "notTranslated": "This page isn't translated yet — showing the English version.",
+    "onThisPage": "On this page",
+    "footer": {
+      "title": "Help & legal"
+    },
+    "home": {
+      "news": "Latest news",
+      "all": "See all",
+      "guides": "Guides",
+      "guidesHint": "Step-by-step help for selling and shopping on zaokaiy."
+    },
+    "news": {
+      "title": "News",
+      "intro": "Announcements, new features and updates from zaokaiy.",
+      "empty": "No news yet",
+      "more": "More news"
+    },
+    "guides": {
+      "eyebrow": "Help center",
+      "title": "Guides",
+      "intro": "Step-by-step how-tos — opening a shop, selling on Facebook live, shipping with COD and more.",
+      "searchPh": "How do I…",
+      "allTopics": "All topics",
+      "empty": "No guides found",
+      "related": "Related guides"
+    },
+    "legal": {
+      "title": "Terms & policies",
+      "intro": "The rules for using zaokaiy, how we handle your data, and how returns and payments work.",
+      "empty": "No policies published yet"
+    }
+  }
+}

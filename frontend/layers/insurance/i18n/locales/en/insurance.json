@@ -1,0 +1,134 @@
+{
+  "insurance": {
+    "open": {
+      "label": "Insurance agent",
+      "hint": "Sell insurance plans with online quotes & applications"
+    },
+    "nav": {
+      "applications": "Applications",
+      "plans": "Plans"
+    },
+    "kind": {
+      "motor": "Motor",
+      "health": "Health",
+      "travel": "Travel",
+      "life": "Life",
+      "property": "Home & property",
+      "accident": "Accident",
+      "other": "Other"
+    },
+    "status": {
+      "submitted": "Submitted",
+      "reviewing": "In review",
+      "approved": "Approved",
+      "issued": "Policy issued",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "details": {
+      "plate": "Plate number",
+      "make": "Make",
+      "model": "Model",
+      "year": "Year",
+      "destination": "Destination",
+      "return_date": "Return date",
+      "address": "Address"
+    },
+    "plan": {
+      "premium": "Premium",
+      "rateOf": "{pct} of sum insured",
+      "fromPrice": "from {price}",
+      "months": "{n} months",
+      "by": "by {insurer}",
+      "soldBy": "Sold by",
+      "coverage": "What's covered",
+      "term": "Term",
+      "sumRange": "Sum insured"
+    },
+    "public": {
+      "title": "Insurance",
+      "subtitle": "Compare plans from licensed agents, get a price instantly and apply online.",
+      "emptyTitle": "No plans yet",
+      "emptyText": "Insurance agents on zaokaiy will list their plans here.",
+      "disclaimer": "Quotes are estimates from the agent's published rates. Cover starts only when the agent issues your policy.",
+      "notFound": "Plan not found",
+      "back": "All plans",
+      "browse": "Browse plans",
+      "homeTitle": "Get insured",
+      "homeText": "Car, travel, health and home cover — quote in seconds."
+    },
+    "apply": {
+      "title": "Get a quote & apply",
+      "sumInsured": "Sum insured ({cur})",
+      "range": "Between {min} and {max}",
+      "quote": "Premium",
+      "name": "Full name",
+      "phone": "Phone",
+      "email": "Email (optional)",
+      "start": "Start date",
+      "submit": "Send application",
+      "privacy": "Only the agent sees your details. No payment is taken online.",
+      "sentTitle": "Application sent",
+      "sentText": "{shop} will contact you to confirm and collect the premium. Your reference: {number}.",
+      "premiumDue": "Premium: {amount}"
+    },
+    "my": {
+      "title": "My insurance",
+      "emptyTitle": "No applications yet",
+      "emptyText": "Plans you apply for show up here with their status and policy number.",
+      "period": "Cover",
+      "payment": "Premium",
+      "paid": "Paid",
+      "unpaid": "Not paid",
+      "policyNo": "Policy no."
+    },
+    "agent": {
+      "appsTitle": "Applications",
+      "appsSubtitle": "Review, collect the premium, then issue the policy number from the insurer.",
+      "appsEmptyTitle": "No applications",
+      "appsEmptyText": "Customers apply from your plans' pages.",
+      "sumInsured": "Sum insured",
+      "policyNo": "Policy number from the insurer",
+      "note": "Note for the customer",
+      "review": "Start review",
+      "approve": "Approve",
+      "markPaid": "Premium paid",
+      "markUnpaid": "Mark unpaid",
+      "issue": "Issue policy",
+      "reject": "Reject",
+      "cancel": "Cancel",
+      "plansTitle": "Plans",
+      "plansSubtitle": "What you sell. Customers see active plans on /insurance and on your storefront.",
+      "newPlan": "New plan",
+      "editPlan": "Edit plan",
+      "plansEmptyTitle": "No plans yet",
+      "plansEmptyText": "Create your first plan — a fixed premium or a rate of the sum insured.",
+      "active": "Active",
+      "kind": "Type",
+      "insurer": "Insurer",
+      "nameLo": "Name in Lao",
+      "coverage": "Coverage (one per line)",
+      "coverageHint": "Own damage & theft\nThird-party injury",
+      "mode": {
+        "fixed": "Fixed premium",
+        "rate": "Rate of sum insured"
+      },
+      "premium": "Premium ({cur})",
+      "rate": "Rate (%)",
+      "minPremium": "Minimum premium ({cur})",
+      "term": "Term (months)",
+      "sumMin": "Min. sum insured ({cur})",
+      "sumMax": "Max. sum insured ({cur})",
+      "stat": {
+        "new": "New applications",
+        "newHint": "Submitted or in review",
+        "toIssue": "To issue",
+        "toIssueHint": "Approved — collect premium & issue",
+        "issued": "Policies issued",
+        "issuedHint": "{amount} premiums collected",
+        "plans": "Active plans",
+        "plansHint": "Visible to customers"
+      }
+    }
+  }
+}

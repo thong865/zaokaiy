@@ -1,0 +1,200 @@
+{
+  "social": {
+    "title": "Social selling",
+    "nav": {
+      "board": "Live board",
+      "orders": "Social orders",
+      "channels": "Channels",
+      "settings": "Settings"
+    },
+    "board": {
+      "intro": "Customers comment {code} on your Facebook / TikTok live or post, or send it on WhatsApp — orders are created and stock is reserved automatically.",
+      "live": "LIVE · {title}",
+      "since": "since {time}",
+      "endLive": "End live",
+      "noSession": "No live session.",
+      "noSessionHint": "Comments still create orders — a session just groups them for the board and reports.",
+      "titlePlaceholder": "Live title, e.g. Friday dresses",
+      "goLive": "● Go live",
+      "defaultTitle": "Live {date}",
+      "stats": {
+        "orders": "Orders",
+        "revenue": "Revenue",
+        "buyers": "Buyers",
+        "comments": "Comments"
+      },
+      "productCodes": "Product codes",
+      "autoAssign": "Auto-assign codes",
+      "soldOut": "SOLD OUT",
+      "left": "{n} left",
+      "claimedBuyers": "{claimed} claimed · {n} buyer | {claimed} claimed · {n} buyers",
+      "emptyTitle": "No product codes yet",
+      "emptyText": "Give products a short code (A01, A02…) so customers can order by comment.",
+      "stream": "Comments & messages",
+      "ordersOnly": "Orders only",
+      "testComment": "Test a comment",
+      "testCommentHint": "(simulator — no real account needed)",
+      "customerName": "Customer name",
+      "randomBuyer": "Random buyer",
+      "messagePlaceholder": "e.g. CF A01 x2",
+      "send": "Send",
+      "waiting": "Waiting for comments… try the simulator above.",
+      "result": {
+        "claimed": "Order",
+        "partial": "Partly sold out",
+        "sold_out": "Sold out",
+        "ignored": "Chat",
+        "blocked": "Blocked",
+        "error": "Error"
+      },
+      "reply": {
+        "sent": "Reply sent",
+        "simulated": "Reply (simulated)",
+        "failed": "Reply failed",
+        "unsupported": "Reply via relay"
+      }
+    },
+    "orders": {
+      "tabs": {
+        "open": "Waiting for customer",
+        "confirmed": "To verify payment",
+        "paid": "To ship"
+      },
+      "hintOpen": "Waiting for checkout · reserved until {date}",
+      "hintPaidRef": "Customer says paid · ref {ref}",
+      "hintAddress": "Address confirmed, awaiting payment",
+      "searchPlaceholder": "Order no., name or phone",
+      "items": "Items",
+      "emptyTitle": "No social orders",
+      "emptyText": "Orders appear here when customers comment product codes.",
+      "openBoard": "Open live board"
+    },
+    "order": {
+      "back": "← Social orders",
+      "invoice": "Invoice",
+      "packingSlip": "Packing slip",
+      "steps": {
+        "open": "Claimed",
+        "confirmed": "Address confirmed",
+        "paid": "Paid",
+        "shipped": "Shipped",
+        "completed": "Delivered"
+      },
+      "code": "Code",
+      "item": "Item",
+      "amount": "Amount",
+      "conversation": "Conversation",
+      "nextStep": "Next step",
+      "theCustomer": "the customer",
+      "waitingAddress": "Waiting for {name} to confirm their address. Reserved until {date}.",
+      "copied": "Copied ✓",
+      "copyLink": "Copy checkout link",
+      "markPaid": "Mark as paid",
+      "customerReports": "Customer reports payment:",
+      "awaitingPayment": "Awaiting payment.",
+      "paymentReceived": "Payment received",
+      "trackingPlaceholder": "Tracking number (Kerry, Flash, EMS…)",
+      "markShipped": "Mark shipped",
+      "tracking": "Tracking:",
+      "markDelivered": "Mark delivered",
+      "orderIs": "This order is {status}.",
+      "cancelRelease": "Cancel & release stock",
+      "customerId": "ID {id}",
+      "noAddress": "No shipping address yet.",
+      "notified": "The customer was messaged about this update.",
+      "notifyFailed": "Couldn't message the customer ({error}). Send them the order link yourself."
+    },
+    "channels": {
+      "serverSetup": "Server setup:",
+      "needVerifyToken": "set {env} in the API .env to enable Facebook/WhatsApp webhooks.",
+      "needAppSecret": "Set {env} so webhook signatures are verified.",
+      "needHttps": "Webhooks must reach your API over public HTTPS (e.g. a domain or a tunnel like Cloudflare Tunnel / ngrok while testing).",
+      "lastEvent": "last event {ago}",
+      "noEvents": "no events yet",
+      "autoReply": "Auto-reply",
+      "active": "Active",
+      "disconnect": "Disconnect",
+      "confirmDisconnect": "Disconnect {name}?",
+      "accessToken": "Access token",
+      "tokenSaved": "•••••••• saved — paste to replace",
+      "pasteToken": "Paste access token",
+      "callbackUrl": "Webhook callback URL",
+      "ingestUrl": "Ingest URL (signed)",
+      "signingSecret": "Signing secret",
+      "rotate": "Rotate",
+      "curlExample": "Example request (curl)",
+      "connectChannel": "Connect a channel",
+      "connect": "Connect",
+      "namePlaceholder": "Name, e.g. {example}",
+      "nameExample": {
+        "whatsapp": "Shop WhatsApp",
+        "webhook": "n8n LINE bot",
+        "page": "Main page"
+      },
+      "tokenStored": "Stored on the server and never shown again.",
+      "guides": {
+        "facebook": {
+          "title": "Facebook Page (posts, lives & Messenger)",
+          "idLabel": "Page ID",
+          "idHelp": "Facebook → your Page → About → Page transparency → Page ID",
+          "tokenHelp": "Page access token with pages_manage_engagement, pages_read_user_content and pages_messaging",
+          "s1": "Create a Meta app (developers.facebook.com) and add the Webhooks + Messenger products.",
+          "s2": "Webhooks → Page: callback URL below, verify token = META_VERIFY_TOKEN from the API .env. Subscribe to “feed” and “messages”.",
+          "s3": "Set META_APP_SECRET in the API .env so every webhook is signature-checked.",
+          "s4": "Paste the Page ID and a long-lived Page access token here."
+        },
+        "whatsapp": {
+          "title": "WhatsApp Business (Cloud API)",
+          "idLabel": "Phone number ID",
+          "idHelp": "WhatsApp Manager → API setup → Phone number ID (not the phone number itself)",
+          "tokenHelp": "System-user access token with whatsapp_business_messaging",
+          "s1": "In your Meta app add the WhatsApp product and connect your business number.",
+          "s2": "Webhooks → WhatsApp Business Account: same callback URL and verify token as Facebook. Subscribe to “messages”.",
+          "s3": "Paste the Phone number ID and a permanent system-user token here.",
+          "s4": "Customers message your WhatsApp number, e.g. “ສັ່ງ A01 2”. Replies go out as WhatsApp messages (within the 24-hour service window)."
+        },
+        "tiktok": {
+          "title": "TikTok (LIVE / video comments)",
+          "idLabel": "Account open_id",
+          "idHelp": "Your TikTok account open_id from the TikTok developer portal",
+          "tokenHelp": "Not needed — TikTok has no public API for replying to LIVE comments",
+          "s1": "TikTok only exposes LIVE comments to approved partners (TikTok Shop / LIVE partner programmes). If you have access, point its webhook at the TikTok URL below and set TIKTOK_CLIENT_SECRET.",
+          "s2": "Otherwise use a comment relay tool (or an n8n workflow) that forwards comments to a “Webhook” channel — see below.",
+          "s3": "Customers see their checkout link when you read it on stream or pin it; replies can’t be posted automatically."
+        },
+        "webhook": {
+          "title": "Webhook (n8n, Make, Zapier, LINE bot, custom)",
+          "s1": "POST JSON to the ingest URL with an HMAC-SHA256 signature of the raw body using this channel’s secret.",
+          "s2": "The response contains reply_text and checkout_url — post them back to the customer from your workflow."
+        }
+      }
+    },
+    "settings": {
+      "howRead": "How comments are read",
+      "triggerWords": "Trigger words",
+      "removeWord": "Remove {word}",
+      "addWord": "add word",
+      "understood": "Understood formats:",
+      "requireTrigger": "Only accept comments that include a trigger word",
+      "requireTriggerHint": "Recommended for busy lives. When off, “{example}” also orders — but questions like “{question}” are always ignored.",
+      "questionExample": "A01 how much?",
+      "holdHours": "Reserve stock for (hours)",
+      "maxQty": "Max per item per customer",
+      "shippingFee": "Shipping fee ({cur})",
+      "autoReplies": "Automatic replies",
+      "placeholders": "Placeholders:",
+      "presets": "Start from a template:",
+      "useLao": "Use Lao template",
+      "useThai": "Use Thai template",
+      "useEnglish": "Use English template",
+      "whenReserved": "When items are reserved",
+      "whenSoldOut": "When sold out",
+      "preview": "Preview:",
+      "paymentInstructions": "Payment instructions (shown on the checkout page)",
+      "paymentPlaceholder": "PromptPay 081-234-5678 (Siam Crafts Co., Ltd.) · Kasikorn 123-4-56789-0",
+      "save": "Save settings",
+      "sampleName": "Nok",
+      "sampleItems": "A01 Silk dress x2"
+    }
+  }
+}

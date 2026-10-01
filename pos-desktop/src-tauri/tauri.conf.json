@@ -1,0 +1,58 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "zaokaiy POS",
+  "version": "0.1.0",
+  "identifier": "com.zaokaiy.pos",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:3100",
+    "beforeBuildCommand": "npm run generate",
+    "frontendDist": "../.output/public"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "title": "zaokaiy POS",
+        "width": 1366,
+        "height": 820,
+        "minWidth": 1024,
+        "minHeight": 640,
+        "center": true,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": "'self' ipc: http://ipc.localhost",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": "'self' asset: http: https: data: blob:",
+        "font-src": "'self' data:",
+        "connect-src": "ipc: http://ipc.localhost"
+      },
+      "dangerousDisableAssetCspModification": ["style-src"]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "msi", "dmg", "app"],
+    "category": "Business",
+    "shortDescription": "zaokaiy point of sale",
+    "longDescription": "Offline-first point of sale for zaokaiy shops. Keeps selling without internet and syncs sales and products when back online.",
+    "publisher": "zaokaiy",
+    "copyright": "© zaokaiy",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "webviewInstallMode": { "type": "embedBootstrapper" },
+      "nsis": { "installMode": "perMachine", "languages": ["English"] }
+    },
+    "macOS": { "minimumSystemVersion": "11.0" }
+  }
+}
