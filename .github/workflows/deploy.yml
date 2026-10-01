@@ -1,14 +1,16 @@
 # Deploys zaokaiy to the VPS on every push to master (or by hand: Actions → Deploy → Run workflow).
 #   1. check   — Rust unit tests + Nuxt typecheck
 #   2. build   — API and web Docker images, pushed to GitHub Container Registry (ghcr.io)
-#   3. deploy  — over SSH: update the checkout, pull the images, restart, wait for /api/health
-#                (deploy/deploy.sh — restores the previous release if the new one isn't healthy)
+#   3. deploy  — copies ONLY the runtime files (docker-compose.prod.yml, deploy/Caddyfile,
+#                deploy/deploy.sh, deploy/backup.sh, .env.prod.example) to the server — no source
+#                code, no git checkout there — then over SSH pulls the images, restarts and waits for
+#                /api/health (deploy/deploy.sh — restores the previous release if the new one isn't healthy)
 #
 # Repository → Settings → Secrets and variables → Actions:
 #   secrets   SERVER_HOST, SERVER_USER, SERVER_SSH_KEY (private key whose public key is in the
 #             server user's ~/.ssh/authorized_keys), optional SERVER_PORT (default 22)
 #   variable  DEPLOY_PATH — the checkout on the server (default /opt/zaokaiy)
-# The server needs the repo cloned at DEPLOY_PATH and .env.prod filled in (DEPLOY.md, steps 4–6).
+# The server needs only DEPLOY_PATH with .env.prod filled in (DEPLOY.md, steps 4–6).
 name: Deploy
 
 on:
@@ -105,17 +107,34 @@ jobs:
       contents: read
       packages: read
     steps:
+      # runtime files only — the source code never leaves GitHub
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            docker-compose.prod.yml
+            .env.prod.example
+            deploy
+          sparse-checkout-cone-mode: false
       - name: Image names
         id: img
         run: |
           base="${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}"
           echo "api=$base/zaokaiy-api:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "web=$base/zaokaiy-web:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+      - name: Upload runtime files
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          source: docker-compose.prod.yml,.env.prod.example,deploy/Caddyfile,deploy/deploy.sh,deploy/backup.sh
+          target: ${{ vars.DEPLOY_PATH || '/var/serv/zaokaiy' }}
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1
         env:
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/var/serv/zaokaiy' }}
-          SHA: ${{ github.sha }}
           API_IMAGE: ${{ steps.img.outputs.api }}
           WEB_IMAGE: ${{ steps.img.outputs.web }}
           GHCR_USER: ${{ github.actor }}
@@ -126,14 +145,12 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
-          envs: DEPLOY_PATH,SHA,API_IMAGE,WEB_IMAGE,GHCR_USER,GHCR_TOKEN
+          envs: DEPLOY_PATH,API_IMAGE,WEB_IMAGE,GHCR_USER,GHCR_TOKEN
           command_timeout: 20m
           script: |
             set -eu
             cd "$DEPLOY_PATH"
-            # compose file, Caddyfile and deploy script of this commit (fails if the server copy was edited)
-            git fetch --quiet origin master
-            git merge --ff-only "$SHA"
+            chmod +x deploy/deploy.sh deploy/backup.sh
             # the job's token can read private packages for as long as this job runs
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             trap 'docker logout ghcr.io > /dev/null' EXIT

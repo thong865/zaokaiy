@@ -14,7 +14,7 @@ Files: `docker-compose.prod.yml`, `deploy/Caddyfile`, `.env.prod.example` and `d
 
 ## 1. Get the VPS
 
-- **Plan:** KVM 2 (2 vCPU, 8 GB RAM) is comfortable. KVM 1 (4 GB) works, but add swap (step 4) because compiling the Rust API needs about 3 GB of RAM.
+- **Plan:** KVM 2 (2 vCPU, 8 GB RAM) is comfortable. KVM 1 (4 GB) is enough: nothing is compiled on the server.
 - **OS template:** in hPanel choose **Ubuntu 24.04 with Docker** (or plain Ubuntu 24.04 and install Docker in step 4).
 - **Server location:** pick the one closest to your customers (e.g. Asia) for faster pages.
 
@@ -41,31 +41,41 @@ ssh root@YOUR_VPS_IP
 # Docker (skip if you chose the Docker template)
 curl -fsSL https://get.docker.com | sh
 
-# 4 GB swap, needed on KVM 1 for the Rust build
-fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+# 2 GB swap (images are built off the server, so the VPS no longer needs RAM for compiling Rust)
+fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
 echo '/swapfile none swap sw 0 0' >> /etc/fstab
 ```
 
-## 5. Upload the code
+## 5. Prepare the deploy folder (no source code on the server)
 
-**Option A — Git (recommended).** Push the project to a private GitHub repo, add the server's key as a *deploy key*, then:
+The server never gets the source code. It holds only the files needed to **run** prebuilt images:
 
-```bash
-git clone git@github.com:YOU/zaokaiy.git /opt/zaokaiy
+```
+/var/serv/zaokaiy/
+├── docker-compose.prod.yml
+├── .env.prod                 # your secrets (step 6)
+├── .env.prod.example
+└── deploy/
+    ├── Caddyfile
+    ├── deploy.sh             # starts a release, health check, rollback
+    ├── backup.sh
+    └── .release.env          # which images are running (written by deploy.sh)
 ```
 
-**Option B — copy from Windows** (PowerShell, from `D:\app`):
+The images contain only compiled output: `zaokaiy-api` is the Rust binary (+ ffmpeg) on Debian slim, `zaokaiy-web`
+is Nuxt's `.output` on Node Alpine. They are built either by GitHub Actions (step 10) or on your PC with
+`deploy/ship.ps1`, never on the VPS.
+
+Upload the runtime files once from your PC (PowerShell, in `D:\app\zaokaiy`):
 
 ```powershell
-tar --exclude=node_modules --exclude=target --exclude=.nuxt --exclude=.output --exclude=media --exclude=.env --exclude=*.tar.gz -czf zaokaiy.tgz zaokaiy
-scp zaokaiy.tgz root@YOUR_VPS_IP:/opt/
-ssh root@YOUR_VPS_IP "cd /opt && tar xzf zaokaiy.tgz && rm zaokaiy.tgz"
+.\deploy\ship.ps1 -Server root@YOUR_VPS_IP -FilesOnly
 ```
 
 ## 6. Configure
 
 ```bash
-cd /opt/zaokaiy
+cd /var/serv/zaokaiy
 cp .env.prod.example .env.prod
 sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$(openssl rand -hex 24)/" .env.prod
 sed -i "s/^JWT_SECRET=.*/JWT_SECRET=$(openssl rand -hex 32)/" .env.prod
@@ -75,19 +85,25 @@ chmod 600 .env.prod
 
 `DOMAIN` is the bare host name, e.g. `shop.example.com`. The app, API, CORS, checkout links and media URLs are all derived from it.
 
-## 7. Build and start
+## 7. First release
 
-```bash
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+Pick one way to build and ship (both described in step 10):
+
+```powershell
+# A) from your PC, no GitHub needed: builds locally, uploads only the images
+.\deploy\ship.ps1 -Server root@YOUR_VPS_IP
 ```
 
-The first build takes about 5–15 minutes, mostly compiling Rust. Database migrations run automatically when the API starts.
+or **B)** push to `master` with the GitHub Actions secrets set up (step 10); the workflow builds the images and
+uploads only the runtime files.
+
+The first local build takes about 5–15 minutes, mostly compiling Rust. Database migrations run automatically when
+the API starts.
 
 Tip: add an alias to save typing:
 
 ```bash
-touch /opt/zaokaiy/deploy/.release.env   # image tags of the running release (written by GitHub Actions deploys)
-echo "alias zk='docker compose -f /opt/zaokaiy/docker-compose.prod.yml --env-file /opt/zaokaiy/.env.prod --env-file /opt/zaokaiy/deploy/.release.env'" >> ~/.bashrc && source ~/.bashrc
+echo "alias zk='docker compose -f /var/serv/zaokaiy/docker-compose.prod.yml --env-file /var/serv/zaokaiy/.env.prod --env-file /var/serv/zaokaiy/deploy/.release.env'" >> ~/.bashrc && source ~/.bashrc
 zk ps
 ```
 
@@ -151,23 +167,48 @@ zk exec db psql -U zaokaiy -c "UPDATE users SET totp_secret=NULL, totp_enabled_a
 
 ## 10. Updating
 
-### Automatic: GitHub Actions (recommended)
+Both ways build the images **off the server** and send only images + the five runtime files. Each release is
+tagged (commit SHA), `deploy/deploy.sh` waits for `/api/health`, and if the new release isn't healthy within
+3 minutes the previous one is started again. The last 3 releases are kept on the server for rollback.
+
+### A) From your PC: `deploy/ship.ps1` (no GitHub, no registry)
+
+Needs Docker Desktop and the built-in Windows OpenSSH (`ssh`/`scp`). From `D:\app\zaokaiy`:
+
+```powershell
+$env:ZK_SERVER = 'root@YOUR_VPS_IP'      # optional: ZK_PATH (default /var/serv/zaokaiy), ZK_PORT, ZK_SSH_KEY
+.\deploy\ship.ps1                        # build -> docker save -> scp -> docker load -> deploy.sh
+.\deploy\ship.ps1 -Rollback              # previous release
+```
+
+What it does:
+
+1. `docker build --platform linux/amd64` of `backend` and `frontend`, tagged `zaokaiy-api:<git-sha>` /
+   `zaokaiy-web:<git-sha>` (`-dirty-<time>` if `backend/` or `frontend/` has uncommitted changes).
+2. Uploads `docker-compose.prod.yml`, `.env.prod.example` and `deploy/{Caddyfile,deploy.sh,backup.sh}`.
+3. `docker save` → `scp -C` → `docker load` on the server (the whole images each time, a few hundred MB;
+   GitHub Actions only transfers changed layers).
+4. `bash deploy/deploy.sh zaokaiy-api:<tag> zaokaiy-web:<tag>`.
+
+Other switches: `-FilesOnly` (config files only), `-SkipBuild -Tag <tag>` (re-ship images you already built).
+
+### B) Automatic: GitHub Actions
 
 Every push to `master` runs [.github/workflows/deploy.yml](.github/workflows/deploy.yml):
 
 1. **check** — Rust unit tests and the Nuxt typecheck.
-2. **build** — builds the API and web images in GitHub (not on the VPS) and pushes them to
+2. **build** — builds the API and web images in GitHub and pushes them to
    `ghcr.io/<owner>/zaokaiy-api` and `zaokaiy-web`, tagged with the commit SHA.
-3. **deploy** — over SSH: fast-forwards the checkout in `/opt/zaokaiy` to that commit, pulls the two images and
-   runs `deploy/deploy.sh`, which restarts the stack and waits for `/api/health`. If the new release isn't
-   healthy within 3 minutes, the previous release is started again and the run fails.
+3. **deploy** — sparse-checks out only the runtime files, copies them to the server with scp (no git checkout on
+   the server), then over SSH logs in to ghcr.io with the run's token, pulls the two images and runs
+   `deploy/deploy.sh`.
 
 Changes only under `pos-desktop/`, `docs/`, `scripts/` or `*.md` don't deploy. Run it by hand from
 *Actions → Deploy → Run workflow* (tick *Skip tests* for an emergency fix).
 
 One-time setup:
 
-1. The server has the repo cloned at `/opt/zaokaiy` (step 5, option A) and `.env.prod` filled in (step 6).
+1. The server has `/var/serv/zaokaiy` with `.env.prod` filled in (steps 5–6).
 2. A key GitHub Actions can log in with:
    ```bash
    ssh-keygen -t ed25519 -N '' -f gh-deploy -C github-actions   # on your PC
@@ -175,40 +216,44 @@ One-time setup:
    ```
 3. GitHub → repo → *Settings → Secrets and variables → Actions*:
    - secrets: `SERVER_HOST` (VPS IP), `SERVER_USER` (`root`), `SERVER_SSH_KEY` (the contents of `gh-deploy`),
-     optional `SERVER_PORT` if SSH isn't on 22
-   - variables (optional): `DEPLOY_PATH` if the checkout isn't `/opt/zaokaiy`, `SITE_URL` (`https://DOMAIN`)
+     optional `SERVER_SSH_PASSPHRASE`, optional `SERVER_PORT` if SSH isn't on 22
+   - variables (optional): `DEPLOY_PATH` if not `/var/serv/zaokaiy`, `SITE_URL` (`https://DOMAIN`)
      for the link on each deploy
 4. Optional: *Settings → Environments → production → Required reviewers* to approve each deploy before it runs.
 
 The images are private packages; each deploy logs the server in to ghcr.io with the run's own token and logs
 out afterwards, so the server needs no GitHub token of its own.
 
-Roll back to the release before the last deploy:
+### Rollback
 
 ```bash
-cd /opt/zaokaiy && bash deploy/deploy.sh rollback
+cd /var/serv/zaokaiy && bash deploy/deploy.sh rollback      # or .\deploy\ship.ps1 -Rollback
 ```
 
 Database migrations are not undone by a rollback — keep migrations backward compatible (add columns, don't
 rename or drop them in the same release that stops using them), and restore a backup (step 11) if you must.
 
-### Manual: build on the server
+### Moving an existing server off source code
+
+If the server still has the old git checkout (or a copied source tree), deploy once with A or B, check
+`zk ps` / `curl -fsS http://127.0.0.1:8081/api/health`, then remove everything that isn't a runtime file.
+Volumes (`zaokaiy_pgdata`, `zaokaiy_media`, ...) are named by the compose project, not the folder, so data is safe.
 
 ```bash
-cd /opt/zaokaiy
-git pull                     # or upload a new zaokaiy.tgz as in step 5
-: > deploy/.release.env      # forget CI images, so compose builds from source
-zk up -d --build             # rebuilds only what changed; migrations run on start
-docker image prune -f        # free disk space from old images
+cd /var/serv/zaokaiy
+find . -mindepth 1 -maxdepth 1 ! -name .env.prod ! -name .env.prod.example ! -name docker-compose.prod.yml ! -name deploy -exec rm -rf {} +
+find deploy -mindepth 1 ! -name Caddyfile ! -name deploy.sh ! -name backup.sh ! -name '.release*.env' ! -name .caddyfile.sha256 -exec rm -rf {} +
+docker image rm zaokaiy-api zaokaiy-web 2>/dev/null   # old images built on the server
+docker builder prune -af                                # build cache holds copies of the source
 ```
 
 ## 11. Backups
 
 ```bash
-chmod +x /opt/zaokaiy/deploy/backup.sh
+chmod +x /var/serv/zaokaiy/deploy/backup.sh
 crontab -e
 # add:
-30 3 * * * /opt/zaokaiy/deploy/backup.sh >> /var/log/zaokaiy-backup.log 2>&1
+30 3 * * * /var/serv/zaokaiy/deploy/backup.sh >> /var/log/zaokaiy-backup.log 2>&1
 ```
 
 This keeps 14 days of database dumps and media archives in `/var/backups/zaokaiy`. Copy them off the server too (Hostinger's weekly VPS snapshots are a good second layer).
@@ -221,7 +266,7 @@ zk exec -T db pg_restore -U zaokaiy -d zaokaiy --clean --if-exists < /var/backup
 
 ## About Hostinger's Docker Manager
 
-Docker Manager (hPanel → VPS → Docker Manager) deploys compose projects from a URL or pasted YAML. Its documentation doesn't say whether it builds from source (the `build:` sections here compile the Rust API and Nuxt app), so the SSH steps above are the reliable route. The GitHub Actions deploy (step 10) already pushes ready-made images to GHCR (`ghcr.io/<owner>/zaokaiy-api:<sha>` and `zaokaiy-web`), which Docker Manager could also pull.
+Docker Manager (hPanel → VPS → Docker Manager) deploys compose projects from a URL or pasted YAML. `docker-compose.prod.yml` has no `build:` sections; it only runs prebuilt images. The GitHub Actions deploy (step 10) pushes them to GHCR (`ghcr.io/<owner>/zaokaiy-api:<sha>` and `zaokaiy-web`), which Docker Manager could also pull if you set `API_IMAGE` / `WEB_IMAGE`.
 
 ## Troubleshooting
 
@@ -229,7 +274,9 @@ Docker Manager (hPanel → VPS → Docker Manager) deploys compose projects from
 |---|---|
 | Browser shows a certificate error / Caddy logs `challenge failed` | DNS doesn't point at the VPS yet, or ports 80/443 are closed in the Hostinger firewall. Fix, then `zk restart caddy`. |
 | `502 Bad Gateway` right after start | API or web still starting; check `zk logs api web`. |
-| Build killed / `signal 9` during `cargo build` | Out of memory; add swap (step 4). |
+| Build killed / `signal 9` during `cargo build` (on your PC) | Give Docker Desktop more memory (Settings → Resources, 6 GB+). |
+| `API_IMAGE not set` from `docker compose` | Add `--env-file deploy/.release.env` (the `zk` alias does), or run `deploy/deploy.sh`. |
+| `ship.ps1`: `scp`/`ssh` not found | Windows Settings → Optional features → add *OpenSSH Client*. |
 | Uploads fail for large videos | Raise `MEDIA_MAX_VIDEO_MB` in `.env.prod`, then `zk up -d`. |
 | `/admin` shows "forbidden" | The account's email must be in `ADMIN_EMAILS`; restart the API after changing it. |
 | Lao text shows as boxes | Fonts load from Google Fonts in the browser; check that the visitor's network allows `fonts.googleapis.com`. |

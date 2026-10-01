@@ -4,8 +4,11 @@
 #   https://DOMAIN/api/*    → Rust API   (also webhooks: /api/webhooks/meta, /api/webhooks/tiktok)
 #   https://DOMAIN/media/*  → uploaded files (served by the API)
 #
-#   cp .env.prod.example .env.prod   # fill it in
-#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# The server holds no source code: only this file, deploy/{Caddyfile,deploy.sh,backup.sh} and
+# .env.prod. The api/web images are built elsewhere (GitHub Actions, or deploy/ship.ps1 on your PC)
+# and started with:  bash deploy/deploy.sh <api-image> <web-image>
+# deploy.sh records the running images in deploy/.release.env; pass it to manual compose commands:
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod --env-file deploy/.release.env ps
 #
 # Nothing is exposed publicly: cloudflared dials out to Cloudflare. Caddy is bound to
 # 127.0.0.1:8081 only, for local debugging (curl http://127.0.0.1:8081/api/health).
@@ -27,10 +30,8 @@ services:
       retries: 20
 
   api:
-    # CI (deploy/deploy.sh) sets API_IMAGE to the image built by GitHub Actions; without it,
-    # `up --build` builds from source as before.
-    image: ${API_IMAGE:-zaokaiy-api}
-    build: ./backend
+    # prebuilt image only (no build: on the server) - set by deploy/deploy.sh in deploy/.release.env
+    image: ${API_IMAGE:?API_IMAGE not set - pass --env-file deploy/.release.env or run deploy/deploy.sh}
     restart: unless-stopped
     depends_on:
       db: { condition: service_healthy }
@@ -110,8 +111,7 @@ services:
     volumes: [media:/app/media, private:/app/private]
 
   web:
-    image: ${WEB_IMAGE:-zaokaiy-web}
-    build: ./frontend
+    image: ${WEB_IMAGE:?WEB_IMAGE not set - pass --env-file deploy/.release.env or run deploy/deploy.sh}
     restart: unless-stopped
     depends_on: [api]
     environment:

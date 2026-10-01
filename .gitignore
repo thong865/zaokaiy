@@ -11,3 +11,5 @@ frontend/.env
 # image tags of the running release (written by deploy/deploy.sh on the server)
 deploy/.release.env
 deploy/.release.prev.env
+deploy/.release.prev.env.bak
+deploy/.caddyfile.sha256
