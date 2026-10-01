@@ -114,7 +114,7 @@ jobs:
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1
         env:
-          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/opt/zaokaiy' }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/var/serv/zaokaiy' }}
           SHA: ${{ github.sha }}
           API_IMAGE: ${{ steps.img.outputs.api }}
           WEB_IMAGE: ${{ steps.img.outputs.web }}
