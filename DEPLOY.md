@@ -79,11 +79,13 @@ cd /var/serv/zaokaiy
 cp .env.prod.example .env.prod
 sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$(openssl rand -hex 24)/" .env.prod
 sed -i "s/^JWT_SECRET=.*/JWT_SECRET=$(openssl rand -hex 32)/" .env.prod
-nano .env.prod      # set DOMAIN, ADMIN_EMAILS, and optionally the AI / social keys
+sed -i "s|^KYC_ENCRYPTION_KEY=.*|KYC_ENCRYPTION_KEY=$(openssl rand -base64 32)|" .env.prod
+sed -i "s|^COD_RISK_PEPPER=.*|COD_RISK_PEPPER=$(openssl rand -base64 32)|" .env.prod
+nano .env.prod      # set DOMAIN, TUNNEL_TOKEN, ADMIN_EMAILS, and optionally the AI / social keys
 chmod 600 .env.prod
 ```
 
-`DOMAIN` is the bare host name, e.g. `shop.example.com`. The app, API, CORS, checkout links and media URLs are all derived from it.
+Get `TUNNEL_TOKEN` from Cloudflare Zero Trust → Networks → Tunnels → your tunnel → install command. Keep `KYC_ENCRYPTION_KEY` and `COD_RISK_PEPPER` backed up; changing either can invalidate protected production data. `DOMAIN` is the bare host name, e.g. `shop.example.com`. The app, API, CORS, checkout links and media URLs are all derived from it.
 
 ## 7. First release
 

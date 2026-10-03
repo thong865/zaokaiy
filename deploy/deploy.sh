@@ -26,6 +26,8 @@ compose() { docker compose -f docker-compose.prod.yml --env-file .env.prod --env
 release_images() { sed -n 's/^\(API\|WEB\)_IMAGE=//p' "$@" 2>/dev/null || true; }
 
 start() {
+  # validate required .env.prod values before downloading images
+  compose config --quiet
   # pull only what isn't on the server yet (tags are commit SHAs, so a present tag is the right one)
   local img
   for img in $(release_images "$RELEASE"); do
